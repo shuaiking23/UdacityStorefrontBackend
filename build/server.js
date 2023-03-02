@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 exports.__esModule = true;
 var express_1 = __importDefault(require("express"));
 var body_parser_1 = __importDefault(require("body-parser"));
+var multer_1 = __importDefault(require("multer"));
 var orders_1 = __importDefault(require("./handlers/orders"));
 var products_1 = __importDefault(require("./handlers/products"));
 var users_1 = __importDefault(require("./handlers/users"));
@@ -12,6 +13,8 @@ var app = (0, express_1["default"])();
 var routes = express_1["default"].Router();
 var address = '0.0.0.0:3000';
 app.use(body_parser_1["default"].json());
+app.use((0, multer_1["default"])().array());
+//app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1', routes);
 routes.get('/', function (req, res) {
     res.send('Storefront API');

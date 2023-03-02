@@ -149,8 +149,16 @@ var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0
                 return [4 /*yield*/, store.authenticate(username, password)];
             case 2:
                 u = _a.sent();
+                if (typeof u === 'string') {
+                    res.status(401).json({
+                        'error': u
+                    });
+                    return [2 /*return*/];
+                }
                 token = jsonwebtoken_1["default"].sign({ user: u }, process.env.TOKEN_SECRET);
-                res.json(token);
+                res.json({
+                    'token': token
+                });
                 return [3 /*break*/, 4];
             case 3:
                 err_2 = _a.sent();

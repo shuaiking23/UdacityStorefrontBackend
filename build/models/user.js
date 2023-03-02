@@ -68,7 +68,7 @@ var UserStore = /** @class */ (function () {
                         return [2 /*return*/, result.rows];
                     case 3:
                         err_1 = _a.sent();
-                        throw new Error("Could not get users. Error: ".concat(err_1));
+                        throw new Error("[EU101] Could not get users. Error: ".concat(err_1));
                     case 4: return [2 /*return*/];
                 }
             });
@@ -92,7 +92,7 @@ var UserStore = /** @class */ (function () {
                         return [2 /*return*/, result.rows[0]];
                     case 3:
                         err_2 = _a.sent();
-                        throw new Error("Could not find user ".concat(id, ". Error: ").concat(err_2));
+                        throw new Error("[EU201] Could not find user ".concat(id, ". Error: ").concat(err_2));
                     case 4: return [2 /*return*/];
                 }
             });
@@ -122,7 +122,7 @@ var UserStore = /** @class */ (function () {
                         return [2 /*return*/, user];
                     case 3:
                         err_3 = _a.sent();
-                        throw new Error("Could not add new user ".concat(name, ". Error: ").concat(err_3));
+                        throw new Error("[EU301] Could not add new user ".concat(name, ". Error: ").concat(err_3));
                     case 4: return [2 /*return*/];
                 }
             });
@@ -147,7 +147,7 @@ var UserStore = /** @class */ (function () {
                         return [2 /*return*/, user];
                     case 3:
                         err_4 = _a.sent();
-                        throw new Error("Could not delete user ".concat(id, ". Error: ").concat(err_4));
+                        throw new Error("[EU401] Could not delete user ".concat(id, ". Error: ").concat(err_4));
                     case 4: return [2 /*return*/];
                 }
             });
@@ -170,15 +170,22 @@ var UserStore = /** @class */ (function () {
                         conn.release();
                         if (result.rows.length) {
                             user = result.rows[0];
-                            if ((bcrypt_1["default"].compareSync(password + pepper), user.password)) {
+                            if (bcrypt_1["default"].compareSync(password + pepper, user.password)) {
                                 return [2 /*return*/, user];
                             }
+                            else {
+                                return [2 /*return*/, "[EU401] Incorrect username/password."];
+                            }
+                        }
+                        else {
+                            return [2 /*return*/, "[EU402] Incorrect username/password."];
                         }
                         return [3 /*break*/, 4];
                     case 3:
                         err_5 = _a.sent();
-                        throw new Error("Unable to authenticate user ".concat(username, ". Error: ").concat(err_5));
-                    case 4: return [2 /*return*/, null];
+                        console.log(err_5);
+                        return [2 /*return*/, "[EU403] Unable to authenticate user ".concat(username, ". Error: ").concat(err_5)];
+                    case 4: return [2 /*return*/];
                 }
             });
         });

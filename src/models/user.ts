@@ -32,7 +32,7 @@ export class UserStore {
 
             return result.rows;
         } catch (err) {
-            throw new Error(`Could not get users. Error: ${err}`);
+            throw new Error(`[EU101] Could not get users. Error: ${err}`);
         }
     }
 
@@ -50,7 +50,7 @@ export class UserStore {
 
             return result.rows[0];
         } catch (err) {
-            throw new Error(`Could not find user ${id}. Error: ${err}`);
+            throw new Error(`[EU201] Could not find user ${id}. Error: ${err}`);
         }
     }
 
@@ -79,7 +79,7 @@ export class UserStore {
 
             return user;
         } catch (err) {
-            throw new Error(`Could not add new user ${name}. Error: ${err}`);
+            throw new Error(`[EU301] Could not add new user ${name}. Error: ${err}`);
         }
     }
 
@@ -99,14 +99,14 @@ export class UserStore {
 
             return user;
         } catch (err) {
-            throw new Error(`Could not delete user ${id}. Error: ${err}`);
+            throw new Error(`[EU401] Could not delete user ${id}. Error: ${err}`);
         }
     }
 
     async authenticate(
         username: string,
         password: string
-    ): Promise<User | null> {
+    ): Promise<User | string> {
         try {
             const sql = `SELECT password
                 FROM users
@@ -115,21 +115,23 @@ export class UserStore {
             const conn = await Client.connect();
 
             const result = await conn.query(sql, [username]);
-
+            
             conn.release();
 
             if (result.rows.length) {
                 const user = result.rows[0];
 
-                if ((bcrypt.compareSync(password + pepper), user.password)) {
+                if (bcrypt.compareSync(password + pepper, user.password)) {
                     return user;
+                } else {
+                    return `[EU401] Incorrect username/password.`;
                 }
+            } else {
+                return `[EU402] Incorrect username/password.`;
             }
         } catch (err) {
-            throw new Error(
-                `Unable to authenticate user ${username}. Error: ${err}`
-            );
+            console.log(err);
+            return `[EU403] Unable to authenticate user ${username}. Error: ${err}`
         }
-        return null;
     }
 }

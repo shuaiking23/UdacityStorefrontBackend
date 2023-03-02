@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
+import multer from 'multer';
 import cors from 'cors';
 import orderRoutes from './handlers/orders';
 import productRoutes from './handlers/products';
@@ -10,6 +11,8 @@ const routes = express.Router();
 const address: string = '0.0.0.0:3000';
 
 app.use(bodyParser.json());
+app.use(multer().array())
+//app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1', routes);
 
 routes.get('/', (req: Request, res: Response) => {

@@ -71,8 +71,17 @@ const authenticate = async (req: Request, res: Response) => {
     const password = req.body.password as string;
     try {
         const u = await store.authenticate(username, password);
+        if (typeof u === 'string') {
+            res.status(401).json({
+                'error': u
+            });
+            return;
+        }
         var token = jwt.sign({ user: u }, process.env.TOKEN_SECRET);
-        res.json(token);
+
+        res.json({
+            'token':token
+        });
     } catch (err) {
         res.status(401).json({ err });
     }
