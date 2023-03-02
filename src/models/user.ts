@@ -6,15 +6,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const pepper: string = process.env.BCRYPT_PASSWORD;
-const saltRounds: integer = parseInt(process.env.SALT_ROUNDS);
+const saltRounds: number = parseInt(process.env.SALT_ROUNDS);
 
 export type User = {
-    id: number;
-    first_name: string;
-    last_name: string;
-    created: string;
-    last_update: string;
-    historic: boolean;
+    id?: number;
+    firstname: string;
+    lastname: string;
+    username?: string;
+    password?: string;
 };
 
 export class UserStore {
@@ -22,10 +21,10 @@ export class UserStore {
         try {
             // @ts-ignore
             const conn = await Client.connect();
-            const sql = `SELECT id, first_name, last_name, created, 
-                    created, last_update
+            const sql = `SELECT id, firstname, lastname, username
                 FROM users
-                WHERE NOT historic`;
+                WHERE NOT historic
+                ORDER BY firstname`;
 
             const result = await conn.query(sql);
 
@@ -57,7 +56,8 @@ export class UserStore {
 
     async create(u: User): Promise<User> {
         try {
-            const sql = `INSERT INTO users (first_name, last_name, password)
+            const sql = `INSERT INTO users (
+                    firstname, lastname, username, password)
                 VALUES($1, $2, $3) RETURNING *`;
             const hash: string = bcrypt.hashSync(
                 u.password + pepper,
@@ -68,8 +68,8 @@ export class UserStore {
             const conn = await Client.connect();
 
             const result = await conn.query(sql, [
-                u.first_name,
-                u.last_name,
+                u.firstname,
+                u.lastname,
                 hash,
             ]);
 
@@ -86,7 +86,7 @@ export class UserStore {
     async delete(id: string): Promise<User> {
         try {
             const sql = `UPDATE users
-                SET first_name = 'd_' || name, historic = true
+                SET firstname = 'd_' || name, historic = true
                 WHERE id=($1)`;
             // @ts-ignore
             const conn = await Client.connect();
@@ -123,7 +123,7 @@ export class UserStore {
 
                 if ((bcrypt.compareSync(password + pepper), user.password)) {
                     return user;
-                };
+                }
             }
         } catch (err) {
             throw new Error(

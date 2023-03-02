@@ -2,12 +2,10 @@
 import Client from '../database';
 
 export type Product = {
-    id: number;
+    id?: number;
     name: string;
+    price: number;
     category: string;
-    created: string;
-    last_update: string;
-    historic: boolean;
 };
 
 export class ProductStore {
@@ -18,7 +16,8 @@ export class ProductStore {
             const sql = `SELECT id, name, category,
                     created, last_update
                 FROM products
-                WHERE NOT historic`;
+                WHERE NOT historic
+                ORDER BY name`;
 
             const result = await conn.query(sql);
 

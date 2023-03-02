@@ -1,8 +1,8 @@
 /* Replace with your SQL commands */
 CREATE TABLE order_products (
     id SERIAL PRIMARY KEY,
-    order_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
+    order_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 0,
     created TIMESTAMP NOT NULL DEFAULT now(),
     last_update TIMESTAMP NOT NULL DEFAULT now(),

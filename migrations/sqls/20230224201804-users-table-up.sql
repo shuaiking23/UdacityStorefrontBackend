@@ -1,8 +1,9 @@
 /* Replace with your SQL commands */
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
+    firstname TEXT NOT NULL,
+    lastname TEXT NOT NULL,
+    username TEXT UNIQUE NOT NULL,
     password TEXT,
     created TIMESTAMP NOT NULL DEFAULT now(),
     last_update TIMESTAMP NOT NULL DEFAULT now(),
