@@ -40,7 +40,7 @@ export class OrderStore {
         }
     }
 
-    async show(id: string): Promise<Order> {
+    async show(id: number): Promise<Order> {
         try {
             const sql = `SELECT * 
                 FROM orders
@@ -149,7 +149,7 @@ export class OrderStore {
     }
 
     async showProducts(
-        orderId: string
+        orderId: number
     ): Promise<OrderProduct[]> {
         try {
             const order_product_sql = `SELECT op.order_id, p.name, op.quantity

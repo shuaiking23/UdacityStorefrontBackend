@@ -22,7 +22,7 @@ route.get('/', index);
 
 
 const show = async (req: Request, res: Response) => {
-    const product = await store.show(req.params.id);
+    const product = await store.show(parseInt(req.params.id));
     res.json(product);
 };
 route.get('/:id', show);
@@ -44,7 +44,7 @@ const create = async (req: Request, res: Response) => {
 route.post('/', create);
 
 const destroy = async (req: Request, res: Response) => {
-    const deleted = await store.delete(req.body.id);
+    const deleted = await store.delete(parseInt(req.params.id));
     res.json(deleted);
 };
 route.delete('/:id', destroy);

@@ -21,19 +21,23 @@ const index = async (_req: Request, res: Response) => {
 route.get('/', index);
 
 const show = async (req: Request, res: Response) => {
-    const order = await store.show(req.params.id);
+    const order = await store.show(parseInt(req.params.id));
     res.json(order);
 };
 route.get('/:id', show);
 
-const create = async (req: Request, res: Response) => {
-    const auth_status = await token_check(req.headers.token as string, null);
-
-    if (auth_status != 'OK') {
-        res.status(401).json(auth_status);
+const checkOrderUser = async (req: Request, res: Response, next) => {
+    const order = await store.show(parseInt(req.params.id));
+    if (res.locals.userid !== order.user_id) {
+        res.status(403).json({
+            'error': '[EO301] User does not match!'
+        })
         return;
     }
+    next();
+};
 
+const create = async (req: Request, res: Response) => {
     try {
         const order: Order = {
             user_id: req.body.userid,
@@ -46,13 +50,13 @@ const create = async (req: Request, res: Response) => {
         res.status(400).json(err);
     }
 };
-route.post('/', create);
+route.post('/', token_check(null), create);
 
 const destroy = async (req: Request, res: Response) => {
-    const deleted = await store.delete(req.body.id);
+    const deleted = await store.delete(req.body.orderid);
     res.json(deleted);
 };
-route.delete('/:id', destroy);
+route.delete('/:id', token_check(null), checkOrderUser, destroy);
 
 // Order Product Routes
 /*
@@ -62,19 +66,9 @@ post '/:id/product/reduce', reduceProduct
 */
 
 const showProducts = async (req: Request, res: Response) => {
-    const orderId: string = req.params.id;
     try {
-        const order = await store.show(orderId);
-
-        const auth_status = await token_check(req.headers.token as string, order.user_id);
-
-        if (auth_status != 'OK') {
-            res.status(401).json(auth_status);
-            return;
-        }
-
         const orderProducts = await store.showProducts(
-            orderId
+            parseInt(req.params.id)
         );
 
         res.json(orderProducts);
@@ -82,7 +76,7 @@ const showProducts = async (req: Request, res: Response) => {
         res.status(400).json(err);
     }
 };
-route.post('/:id/products', showProducts);
+route.post('/:id/products', token_check(null), checkOrderUser, showProducts);
 
 const addProduct = async (req: Request, res: Response) => {
     const op: OrderProduct = {
@@ -100,7 +94,7 @@ const addProduct = async (req: Request, res: Response) => {
         res.status(400).json(err);
     }
 };
-route.post('/:id/product/add', addProduct);
+route.post('/:id/product/add', token_check(null), checkOrderUser, addProduct);
 
 const reduceProduct = async (req: Request, res: Response) => {
     // Quantity should be optional
@@ -120,6 +114,6 @@ const reduceProduct = async (req: Request, res: Response) => {
         res.status(400).json(err);
     }
 };
-route.post('/:id/product/reduce', reduceProduct);
+route.post('/:id/product/reduce', token_check(null), checkOrderUser, reduceProduct);
 
 export default route;

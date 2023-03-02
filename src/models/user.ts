@@ -36,7 +36,7 @@ export class UserStore {
         }
     }
 
-    async show(id: string): Promise<User> {
+    async show(id: number): Promise<User> {
         try {
             const sql = `SELECT * 
                 FROM users
@@ -83,7 +83,7 @@ export class UserStore {
         }
     }
 
-    async delete(id: string): Promise<User> {
+    async delete(id: number): Promise<User> {
         try {
             const sql = `UPDATE users
                 SET firstname = 'd_' || name, historic = true
@@ -108,14 +108,14 @@ export class UserStore {
         password: string
     ): Promise<User | string> {
         try {
-            const sql = `SELECT password
+            const sql = `SELECT username, password
                 FROM users
                 WHERE username = ($1) AND NOT historic`;
             // @ts-ignore
             const conn = await Client.connect();
 
             const result = await conn.query(sql, [username]);
-            
+
             conn.release();
 
             if (result.rows.length) {

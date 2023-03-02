@@ -56,16 +56,10 @@ delete '/:id', destroy
 post '/authenticate', authenticate
 */
 var index = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var auth_status, users;
+    var users;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                auth_status = (0, common_1.token_check)(req.headers.token, null);
-                if (auth_status != 'OK') {
-                    res.status(401).json(auth_status);
-                    return [2 /*return*/];
-                }
-                return [4 /*yield*/, store.index()];
+            case 0: return [4 /*yield*/, store.index()];
             case 1:
                 users = _a.sent();
                 res.json(users);
@@ -73,27 +67,20 @@ var index = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
         }
     });
 }); };
-route.get('/', index);
+route.get('/', (0, common_1.token_check)(null), index);
 var show = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var auth_status, user;
+    var user;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, (0, common_1.token_check)(req.headers.token, req.params.id)];
+            case 0: return [4 /*yield*/, store.show(parseInt(req.params.id))];
             case 1:
-                auth_status = _a.sent();
-                if (auth_status != 'OK') {
-                    res.status(401).json(auth_status);
-                    return [2 /*return*/];
-                }
-                return [4 /*yield*/, store.show(req.params.id)];
-            case 2:
                 user = _a.sent();
                 res.json(user);
                 return [2 /*return*/];
         }
     });
 }); };
-route.get('/:id', show);
+route.get('/:id', (0, common_1.token_check)(0), show);
 var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var user, newUser, token, err_1;
     return __generator(this, function (_a) {
@@ -122,12 +109,12 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
         }
     });
 }); };
-route.post('/', create);
+route.post('/', (0, common_1.token_check)(null), create);
 var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var deleted;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, store["delete"](req.body.id)];
+            case 0: return [4 /*yield*/, store["delete"](parseInt(req.params.id))];
             case 1:
                 deleted = _a.sent();
                 res.json(deleted);
@@ -155,7 +142,7 @@ var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0
                     });
                     return [2 /*return*/];
                 }
-                token = jsonwebtoken_1["default"].sign({ user: u }, process.env.TOKEN_SECRET);
+                token = jsonwebtoken_1["default"].sign({ user: u.username }, process.env.TOKEN_SECRET);
                 res.json({
                     'token': token
                 });

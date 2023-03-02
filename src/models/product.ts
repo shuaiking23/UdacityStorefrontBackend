@@ -29,7 +29,7 @@ export class ProductStore {
         }
     }
 
-    async show(id: string): Promise<Product> {
+    async show(id: number): Promise<Product> {
         try {
             const sql = `SELECT *
                 FROM products
@@ -66,7 +66,7 @@ export class ProductStore {
         }
     }
 
-    async delete(id: string): Promise<Product> {
+    async delete(id: number): Promise<Product> {
         try {
             const sql = `UPDATE products
                 SET name = 'd_' || name, historic = true

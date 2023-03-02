@@ -20,28 +20,16 @@ post '/authenticate', authenticate
 */
 
 const index = async (req: Request, res: Response) => {
-    const auth_status = token_check(req.headers.token as string, null);
-
-    if (auth_status != 'OK') {
-        res.status(401).json(auth_status);
-        return;
-    }
     const users = await store.index();
     res.json(users);
 };
-route.get('/', index);
+route.get('/', token_check(null), index);
 
 const show = async (req: Request, res: Response) => {
-    const auth_status = await token_check(req.headers.token as string, req.params.id as unknown as number);
-
-    if (auth_status != 'OK') {
-        res.status(401).json(auth_status);
-        return;
-    }
-    const user = await store.show(req.params.id);
+    const user = await store.show(parseInt(req.params.id));
     res.json(user);
 };
-route.get('/:id', show);
+route.get('/:id', token_check(0), show);
 
 const create = async (req: Request, res: Response) => {
     const user: User = {
@@ -58,10 +46,10 @@ const create = async (req: Request, res: Response) => {
         res.status(400).json(err + user);
     }
 };
-route.post('/', create);
+route.post('/', token_check(null), create);
 
 const destroy = async (req: Request, res: Response) => {
-    const deleted = await store.delete(req.body.id);
+    const deleted = await store.delete(parseInt(req.params.id));
     res.json(deleted);
 };
 route.delete('/:id', destroy);
@@ -77,7 +65,7 @@ const authenticate = async (req: Request, res: Response) => {
             });
             return;
         }
-        var token = jwt.sign({ user: u }, process.env.TOKEN_SECRET);
+        var token = jwt.sign({ user: u.username }, process.env.TOKEN_SECRET);
 
         res.json({
             'token':token
