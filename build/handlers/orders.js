@@ -44,6 +44,29 @@ var order_1 = require("../models/order");
 var common_1 = require("../utilities/common");
 var route = express_1["default"].Router();
 var store = new order_1.OrderStore();
+// Middleware to check order user
+var checkOrderUser = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var order;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, store.show(parseInt(req.params.id))];
+            case 1:
+                order = _a.sent();
+                if (order.error) {
+                    res.status(400).json(order);
+                }
+                else if (res.locals.userid !== order.user_id) {
+                    res.status(403).json(({
+                        code: 'EO301',
+                        error: 'User does not match!'
+                    }));
+                    return [2 /*return*/];
+                }
+                next();
+                return [2 /*return*/];
+        }
+    });
+}); };
 // Order Routes
 /*
 get '/', index
@@ -58,6 +81,10 @@ var index = function (_req, res) { return __awaiter(void 0, void 0, void 0, func
             case 0: return [4 /*yield*/, store.index()];
             case 1:
                 orders = _a.sent();
+                if (orders.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(orders);
                 return [2 /*return*/];
         }
@@ -71,30 +98,15 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
             case 0: return [4 /*yield*/, store.show(parseInt(req.params.id))];
             case 1:
                 order = _a.sent();
+                if (order.error) {
+                    res.status(400);
+                }
                 res.json(order);
                 return [2 /*return*/];
         }
     });
 }); };
 route.get('/:id', show);
-var checkOrderUser = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var order;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, store.show(parseInt(req.params.id))];
-            case 1:
-                order = _a.sent();
-                if (res.locals.userid !== order.user_id) {
-                    res.status(403).json({
-                        'error': '[EO301] User does not match!'
-                    });
-                    return [2 /*return*/];
-                }
-                next();
-                return [2 /*return*/];
-        }
-    });
-}); };
 var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var order, newOrder, err_1;
     return __generator(this, function (_a) {
@@ -108,6 +120,10 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, store.create(order)];
             case 1:
                 newOrder = _a.sent();
+                if (newOrder.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(newOrder);
                 return [3 /*break*/, 3];
             case 2:
@@ -126,6 +142,10 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
             case 0: return [4 /*yield*/, store["delete"](req.body.orderid)];
             case 1:
                 deleted = _a.sent();
+                if (deleted.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(deleted);
                 return [2 /*return*/];
         }
@@ -147,6 +167,10 @@ var showProducts = function (req, res) { return __awaiter(void 0, void 0, void 0
                 return [4 /*yield*/, store.showProducts(parseInt(req.params.id))];
             case 1:
                 orderProducts = _a.sent();
+                if (orderProducts.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(orderProducts);
                 return [3 /*break*/, 3];
             case 2:
@@ -174,6 +198,10 @@ var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 return [4 /*yield*/, store.addProduct(op)];
             case 2:
                 addedProduct = _a.sent();
+                if (addedProduct.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(addedProduct);
                 return [3 /*break*/, 4];
             case 3:
@@ -201,6 +229,10 @@ var reduceProduct = function (req, res) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, store.reduceProduct(op)];
             case 2:
                 reduceProduct_1 = _a.sent();
+                if (reduceProduct_1.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(reduceProduct_1);
                 return [3 /*break*/, 4];
             case 3:

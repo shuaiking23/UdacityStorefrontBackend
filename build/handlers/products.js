@@ -50,13 +50,22 @@ get '/:id', show
 post '/', create
 delete '/:id', destroy
 */
-var index = function (_req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var products;
+var index = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var category, products;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, store.index()];
+            case 0:
+                category = req.query.category;
+                if (!category) {
+                    category = null;
+                }
+                return [4 /*yield*/, store.index(category)];
             case 1:
                 products = _a.sent();
+                if (products.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(products);
                 return [2 /*return*/];
         }
@@ -70,6 +79,10 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
             case 0: return [4 /*yield*/, store.show(parseInt(req.params.id))];
             case 1:
                 product = _a.sent();
+                if (product.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(product);
                 return [2 /*return*/];
         }
@@ -90,6 +103,10 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, store.create(product)];
             case 1:
                 newProduct = _a.sent();
+                if (newProduct.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(newProduct);
                 return [3 /*break*/, 3];
             case 2:
@@ -108,6 +125,10 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
             case 0: return [4 /*yield*/, store["delete"](parseInt(req.params.id))];
             case 1:
                 deleted = _a.sent();
+                if (deleted.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(deleted);
                 return [2 /*return*/];
         }

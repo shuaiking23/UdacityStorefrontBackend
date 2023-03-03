@@ -1,5 +1,6 @@
 // @ts-ignore
 import Client from '../database';
+import { CodedError } from '../utilities/common';
 
 export type Product = {
     id?: number;
@@ -9,7 +10,7 @@ export type Product = {
 };
 
 export class ProductStore {
-    async index(): Promise<Product[]> {
+    async index(category: string | null): Promise<Product[] | CodedError> {
         try {
             // @ts-ignore
             const conn = await Client.connect();
@@ -17,19 +18,24 @@ export class ProductStore {
                     created, last_update
                 FROM products
                 WHERE NOT historic
+                    AND (${1} IS NULL
+                        OR category ILIKE ${1})
                 ORDER BY name`;
 
-            const result = await conn.query(sql);
+            const result = await conn.query(sql, [category]);
 
             conn.release();
 
             return result.rows;
         } catch (err) {
-            throw new Error(`Could not get products. Error: ${err}`);
+            return ({
+                code: 'EP101',
+                error: `Could not get products. Error: ${err}`
+            }) as CodedError;
         }
     }
 
-    async show(id: number): Promise<Product> {
+    async show(id: number): Promise<Product | object> {
         try {
             const sql = `SELECT *
                 FROM products
@@ -43,11 +49,14 @@ export class ProductStore {
 
             return result.rows[0];
         } catch (err) {
-            throw new Error(`Could not find product ${id}. Error: ${err}`);
+            return ({
+                code: 'EP201',
+                error: `Could not find product ${id}. Error: ${err}`
+            }) as CodedError;
         }
     }
 
-    async create(p: Product): Promise<Product> {
+    async create(p: Product): Promise<Product | CodedError> {
         try {
             const sql = `INSERT INTO products (name, category) 
                 VALUES($1, $2) RETURNING *`;
@@ -62,11 +71,14 @@ export class ProductStore {
 
             return product;
         } catch (err) {
-            throw new Error(`Could not add new product ${name}. Error: ${err}`);
+            return ({
+                code: 'EP301',
+                error: `Could not add new product ${name}. Error: ${err}`
+            }) as CodedError;
         }
     }
 
-    async delete(id: number): Promise<Product> {
+    async delete(id: number): Promise<Product | CodedError> {
         try {
             const sql = `UPDATE products
                 SET name = 'd_' || name, historic = true
@@ -82,7 +94,10 @@ export class ProductStore {
 
             return product;
         } catch (err) {
-            throw new Error(`Could not delete product ${id}. Error: ${err}`);
+            return ({
+                code: 'EP401',
+                error: `Could not delete product ${id}. Error: ${err}`
+            }) as CodedError;
         }
     }
 }

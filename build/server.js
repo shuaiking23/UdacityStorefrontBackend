@@ -16,6 +16,9 @@ app.use(body_parser_1["default"].json());
 app.use((0, multer_1["default"])().array());
 //app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1', routes);
+app.get('*', function (req, res) {
+    res.status(404).send('Page Not Found!');
+});
 routes.get('/', function (req, res) {
     res.send('Storefront API');
 });

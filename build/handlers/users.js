@@ -56,14 +56,25 @@ delete '/:id', destroy
 post '/authenticate', authenticate
 */
 var index = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var users;
+    var users, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, store.index()];
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, store.index()];
             case 1:
                 users = _a.sent();
+                if (users.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(users);
-                return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 2:
+                err_1 = _a.sent();
+                res.status(400).json(err_1);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
@@ -75,6 +86,10 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
             case 0: return [4 /*yield*/, store.show(parseInt(req.params.id))];
             case 1:
                 user = _a.sent();
+                if (user.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(user);
                 return [2 /*return*/];
         }
@@ -82,7 +97,7 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
 }); };
 route.get('/:id', (0, common_1.token_check)(0), show);
 var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user, newUser, token, err_1;
+    var user, newUser, token, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -98,12 +113,17 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, store.create(user)];
             case 2:
                 newUser = _a.sent();
+                if (newUser.error) {
+                    res.status(400).json(newUser);
+                    return [2 /*return*/];
+                }
+                ;
                 token = jsonwebtoken_1["default"].sign({ user: newUser }, process.env.TOKEN_SECRET);
                 res.json(token);
                 return [3 /*break*/, 4];
             case 3:
-                err_1 = _a.sent();
-                res.status(400).json(err_1 + user);
+                err_2 = _a.sent();
+                res.status(400).json(err_2 + user);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -117,6 +137,10 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
             case 0: return [4 /*yield*/, store["delete"](parseInt(req.params.id))];
             case 1:
                 deleted = _a.sent();
+                if (deleted.error) {
+                    res.status(400);
+                }
+                ;
                 res.json(deleted);
                 return [2 /*return*/];
         }
@@ -124,7 +148,7 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
 }); };
 route["delete"]('/:id', destroy);
 var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var username, password, u, token, err_2;
+    var username, password, u, token, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -136,20 +160,20 @@ var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0
                 return [4 /*yield*/, store.authenticate(username, password)];
             case 2:
                 u = _a.sent();
-                if (typeof u === 'string') {
-                    res.status(401).json({
-                        'error': u
-                    });
+                if (u.error) {
+                    res.status(401).json(u);
                     return [2 /*return*/];
                 }
-                token = jsonwebtoken_1["default"].sign({ user: u.username }, process.env.TOKEN_SECRET);
-                res.json({
-                    'token': token
-                });
+                else {
+                    token = jsonwebtoken_1["default"].sign({ user: u.username }, process.env.TOKEN_SECRET);
+                    res.json({
+                        'token': token
+                    });
+                }
                 return [3 /*break*/, 4];
             case 3:
-                err_2 = _a.sent();
-                res.status(401).json({ err: err_2 });
+                err_3 = _a.sent();
+                res.status(401).json({ err: err_3 });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }

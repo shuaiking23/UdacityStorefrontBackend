@@ -55,22 +55,28 @@ var token_check = function (user_id) {
                     // else skip matching
                     if ((user_id != null && decoded.id !== user_id) ||
                         (user_id == 0 && decoded.id != parseInt(req.params.id))) {
-                        res.status(401).json({
-                            'error': '[EC101] User id does not match!'
-                        });
+                        res.status(401).json(({
+                            code: 'EC101',
+                            error: 'User id does not match!'
+                        }));
+                        return [2 /*return*/];
                     }
                     res.locals.userid = decoded.id;
                 }
                 else {
-                    res.status(401).json({
-                        'error': '[EC102] Missing authorisation token!'
-                    });
+                    res.status(401).json(({
+                        code: 'EC102',
+                        error: 'Missing authorisation token!'
+                    }));
+                    return [2 /*return*/];
                 }
             }
             catch (err) {
-                res.status(401).json({
-                    'error': "[EC103] Error occurred. ".concat(err)
-                });
+                res.status(401).json(({
+                    code: 'EC103',
+                    error: "Error occurred. ".concat(err)
+                }));
+                return [2 /*return*/];
             }
             next();
             return [2 /*return*/];

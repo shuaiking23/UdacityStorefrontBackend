@@ -15,6 +15,10 @@ app.use(multer().array())
 //app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1', routes);
 
+app.get('*', function (req, res) {
+  res.status(404).send('Page Not Found!');
+});
+
 routes.get('/', (req: Request, res: Response) => {
     res.send('Storefront API');
 });

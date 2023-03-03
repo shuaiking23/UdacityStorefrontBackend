@@ -2,6 +2,7 @@
 import Client from '../database';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import { CodedError } from '../utilities/common';
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ export type User = {
 };
 
 export class UserStore {
-    async index(): Promise<User[]> {
+    async index(): Promise<User[] | CodedError> {
         try {
             // @ts-ignore
             const conn = await Client.connect();
@@ -27,16 +28,18 @@ export class UserStore {
                 ORDER BY firstname`;
 
             const result = await conn.query(sql);
-
             conn.release();
 
             return result.rows;
         } catch (err) {
-            throw new Error(`[EU101] Could not get users. Error: ${err}`);
+            return ({
+                code: 'EU101',
+                error: `Could not get users. Error: ${err}`
+            }) as CodedError;
         }
     }
 
-    async show(id: number): Promise<User> {
+    async show(id: number): Promise<User | CodedError> {
         try {
             const sql = `SELECT * 
                 FROM users
@@ -50,11 +53,14 @@ export class UserStore {
 
             return result.rows[0];
         } catch (err) {
-            throw new Error(`[EU201] Could not find user ${id}. Error: ${err}`);
+            return ({
+                code: 'EU201',
+                error: `Could not find user ${id}. Error: ${err}`
+            }) as CodedError;
         }
     }
 
-    async create(u: User): Promise<User> {
+    async create(u: User): Promise<User | object> {
         try {
             const sql = `INSERT INTO users (
                     firstname, lastname, username, password)
@@ -79,11 +85,14 @@ export class UserStore {
 
             return user;
         } catch (err) {
-            throw new Error(`[EU301] Could not add new user ${name}. Error: ${err}`);
+            return ({
+                code: 'EU301',
+                error: `Could not add new user ${name}. Error: ${err}`
+            }) as CodedError;
         }
     }
 
-    async delete(id: number): Promise<User> {
+    async delete(id: number): Promise<User | CodedError> {
         try {
             const sql = `UPDATE users
                 SET firstname = 'd_' || name, historic = true
@@ -99,14 +108,17 @@ export class UserStore {
 
             return user;
         } catch (err) {
-            throw new Error(`[EU401] Could not delete user ${id}. Error: ${err}`);
+            return ({
+                code: 'EU401',
+                error: `Could not delete user ${id}. Error: ${err}`
+            }) as CodedError;
         }
     }
 
     async authenticate(
         username: string,
         password: string
-    ): Promise<User | string> {
+    ): Promise<User | CodedError> {
         try {
             const sql = `SELECT username, password
                 FROM users
@@ -124,14 +136,23 @@ export class UserStore {
                 if (bcrypt.compareSync(password + pepper, user.password)) {
                     return user;
                 } else {
-                    return `[EU401] Incorrect username/password.`;
+                    return ({
+                        code: 'EU501',
+                        error: 'Incorrect username/password.'
+                    }) as CodedError;
                 }
             } else {
-                return `[EU402] Incorrect username/password.`;
+                return ({
+                    code: 'EU502',
+                    error: 'Incorrect username/password.'
+                }) as CodedError;
             }
         } catch (err) {
             console.log(err);
-            return `[EU403] Unable to authenticate user ${username}. Error: ${err}`
+            return ({
+                code: 'EU503',
+                error: `Unable to authenticate user ${username}. Error: ${err}`
+            }) as CodedError;
         }
     }
 }

@@ -45,7 +45,7 @@ var database_1 = __importDefault(require("../database"));
 var ProductStore = /** @class */ (function () {
     function ProductStore() {
     }
-    ProductStore.prototype.index = function () {
+    ProductStore.prototype.index = function (category) {
         return __awaiter(this, void 0, void 0, function () {
             var conn, sql, result, err_1;
             return __generator(this, function (_a) {
@@ -55,15 +55,18 @@ var ProductStore = /** @class */ (function () {
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
-                        sql = "SELECT id, name, category,\n                    created, last_update\n                FROM products\n                WHERE NOT historic\n                ORDER BY name";
-                        return [4 /*yield*/, conn.query(sql)];
+                        sql = "SELECT id, name, category,\n                    created, last_update\n                FROM products\n                WHERE NOT historic\n                    AND (".concat(1, " IS NULL\n                        OR category ILIKE ").concat(1, ")\n                ORDER BY name");
+                        return [4 /*yield*/, conn.query(sql, [category])];
                     case 2:
                         result = _a.sent();
                         conn.release();
                         return [2 /*return*/, result.rows];
                     case 3:
                         err_1 = _a.sent();
-                        throw new Error("Could not get products. Error: ".concat(err_1));
+                        return [2 /*return*/, ({
+                                code: 'EP101',
+                                error: "Could not get products. Error: ".concat(err_1)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -87,7 +90,10 @@ var ProductStore = /** @class */ (function () {
                         return [2 /*return*/, result.rows[0]];
                     case 3:
                         err_2 = _a.sent();
-                        throw new Error("Could not find product ".concat(id, ". Error: ").concat(err_2));
+                        return [2 /*return*/, ({
+                                code: 'EP201',
+                                error: "Could not find product ".concat(id, ". Error: ").concat(err_2)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -112,7 +118,10 @@ var ProductStore = /** @class */ (function () {
                         return [2 /*return*/, product];
                     case 3:
                         err_3 = _a.sent();
-                        throw new Error("Could not add new product ".concat(name, ". Error: ").concat(err_3));
+                        return [2 /*return*/, ({
+                                code: 'EP301',
+                                error: "Could not add new product ".concat(name, ". Error: ").concat(err_3)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -137,7 +146,10 @@ var ProductStore = /** @class */ (function () {
                         return [2 /*return*/, product];
                     case 3:
                         err_4 = _a.sent();
-                        throw new Error("Could not delete product ".concat(id, ". Error: ").concat(err_4));
+                        return [2 /*return*/, ({
+                                code: 'EP401',
+                                error: "Could not delete product ".concat(id, ". Error: ").concat(err_4)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });

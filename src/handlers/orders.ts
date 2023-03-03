@@ -1,10 +1,26 @@
 import express, { Request, Response } from 'express';
 import { Order, OrderProduct, OrderStore, order_status } from '../models/order';
-import { token_check } from '../utilities/common';
+import { token_check, CodedError } from '../utilities/common';
 
 const route = express.Router();
 
 const store = new OrderStore();
+
+// Middleware to check order user
+const checkOrderUser = async (req: Request, res: Response, next) => {
+    const order = await store.show(parseInt(req.params.id));
+    if ((order as CodedError).error) {
+        res.status(400).json(order)
+    }
+    else if (res.locals.userid !== (order as Order).user_id) {
+        res.status(403).json(({
+            code: 'EO301',
+            error: 'User does not match!'
+        }) as CodedError)
+        return;
+    }
+    next();
+};
 
 // Order Routes
 /*
@@ -16,26 +32,21 @@ delete '/:id', destroy
 
 const index = async (_req: Request, res: Response) => {
     const orders = await store.index();
+    if((orders as CodedError).error) {
+        res.status(400);
+    };
     res.json(orders);
 };
 route.get('/', index);
 
 const show = async (req: Request, res: Response) => {
     const order = await store.show(parseInt(req.params.id));
+    if((order as CodedError).error) {
+        res.status(400);
+    }
     res.json(order);
 };
 route.get('/:id', show);
-
-const checkOrderUser = async (req: Request, res: Response, next) => {
-    const order = await store.show(parseInt(req.params.id));
-    if (res.locals.userid !== order.user_id) {
-        res.status(403).json({
-            'error': '[EO301] User does not match!'
-        })
-        return;
-    }
-    next();
-};
 
 const create = async (req: Request, res: Response) => {
     try {
@@ -45,6 +56,9 @@ const create = async (req: Request, res: Response) => {
         };
 
         const newOrder = await store.create(order);
+        if((newOrder as CodedError).error) {
+            res.status(400);
+        };
         res.json(newOrder);
     } catch (err) {
         res.status(400).json(err);
@@ -54,6 +68,9 @@ route.post('/', token_check(null), create);
 
 const destroy = async (req: Request, res: Response) => {
     const deleted = await store.delete(req.body.orderid);
+    if((deleted as CodedError).error) {
+        res.status(400);
+    };
     res.json(deleted);
 };
 route.delete('/:id', token_check(null), checkOrderUser, destroy);
@@ -70,7 +87,9 @@ const showProducts = async (req: Request, res: Response) => {
         const orderProducts = await store.showProducts(
             parseInt(req.params.id)
         );
-
+        if((orderProducts as CodedError).error) {
+            res.status(400);
+        };
         res.json(orderProducts);
     } catch (err) {
         res.status(400).json(err);
@@ -89,6 +108,9 @@ const addProduct = async (req: Request, res: Response) => {
         const addedProduct = await store.addProduct(
             op
         );
+        if((addedProduct as CodedError).error) {
+            res.status(400);
+        };
         res.json(addedProduct);
     } catch (err) {
         res.status(400).json(err);
@@ -109,6 +131,9 @@ const reduceProduct = async (req: Request, res: Response) => {
         const reduceProduct = await store.reduceProduct(
             op
         );
+        if((reduceProduct as CodedError).error) {
+            res.status(400);
+        };
         res.json(reduceProduct);
     } catch (err) {
         res.status(400).json(err);

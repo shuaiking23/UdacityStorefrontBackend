@@ -68,7 +68,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, result.rows];
                     case 3:
                         err_1 = _a.sent();
-                        throw new Error("[EO101] Could not get orders. Error: ".concat(err_1));
+                        return [2 /*return*/, ({
+                                code: 'EO101',
+                                error: "Could not get orders. Error: ".concat(err_1)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -92,7 +95,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, result.rows[0]];
                     case 3:
                         err_2 = _a.sent();
-                        throw new Error("[EO201] Could not find order ".concat(id, ". Error: ").concat(err_2));
+                        return [2 /*return*/, ({
+                                code: 'EO201',
+                                error: "Could not find order ".concat(id, ". Error: ").concat(err_2)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -117,7 +123,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 3:
                         err_3 = _a.sent();
-                        throw new Error("[EO301] Could not add new order ".concat(o, ". Error: ").concat(err_3));
+                        return [2 /*return*/, ({
+                                code: 'EO301',
+                                error: "Could not add new order ".concat(o, ". Error: ").concat(err_3)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -145,19 +154,28 @@ var OrderStore = /** @class */ (function () {
                             order_1 = result.rows[0];
                             if (order_1.status !== 'Active') {
                                 conn.release();
-                                throw new Error("[EOP101] Could not add product ".concat(op.product_id, " to order ").concat(op.order_id, " \n                            because order status is ").concat(order_1.status));
+                                return [2 /*return*/, ({
+                                        code: 'EOP101',
+                                        error: "Could not add product ".concat(op.product_id, " to order ").concat(op.order_id, " \n                            because order status is ").concat(order_1.status)
+                                    })];
                             }
                         }
                         else {
                             conn.release();
-                            throw new Error("[EOP102] Order ".concat(op.order_id, " is not valid."));
+                            return [2 /*return*/, ({
+                                    code: 'EOP102',
+                                    error: "Order ".concat(op.order_id, " is not valid.")
+                                })];
                         }
                         return [4 /*yield*/, conn.query(product_sql, [op.product_id])];
                     case 3:
                         result = _a.sent();
                         if (!result.rows.length) {
                             conn.release();
-                            throw new Error("[EOP103] Product ".concat(op.product_id, " is not valid."));
+                            return [2 /*return*/, ({
+                                    code: 'EOP103',
+                                    error: "Product ".concat(op.product_id, " is not valid.")
+                                })];
                         }
                         return [4 /*yield*/, conn.query(exists_sql, [op.order_id, op.product_id])];
                     case 4:
@@ -179,7 +197,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 6:
                         err_4 = _a.sent();
-                        throw new Error("[EOP104] Could not add product ".concat(op.product_id, " to order ").concat(op.order_id, ".\n                Error: ").concat(err_4));
+                        return [2 /*return*/, ({
+                                code: 'EOP104',
+                                error: "Could not add product ".concat(op.product_id, " to order ").concat(op.order_id, ".\n                    Error: ").concat(err_4)
+                            })];
                     case 7: return [2 /*return*/];
                 }
             });
@@ -203,7 +224,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 3:
                         err_5 = _a.sent();
-                        throw new Error("[EOP201] Could not get products from order ".concat(orderId, ".\n                Error: ").concat(err_5));
+                        return [2 /*return*/, ({
+                                code: 'EOP201',
+                                error: "Could not get products from order ".concat(orderId, ".\n                Error: ").concat(err_5)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -229,7 +253,10 @@ var OrderStore = /** @class */ (function () {
                         quantity = result.rows[0];
                         if (op.quantity > quantity) {
                             conn.release();
-                            throw new Error("[EOP301] Unable to remove ".concat(op.quantity, " quantity from product ").concat(op.product_id, " in order ").concat(op.order_id, "."));
+                            return [2 /*return*/, ({
+                                    code: 'EOP301',
+                                    error: "Unable to remove ".concat(op.quantity, " quantity\n                                from product ").concat(op.product_id, " in order ").concat(op.order_id, ".")
+                                })];
                         }
                         return [3 /*break*/, 5];
                     case 3: return [4 /*yield*/, this.removeProduct(op)];
@@ -239,11 +266,17 @@ var OrderStore = /** @class */ (function () {
                     case 5: return [3 /*break*/, 7];
                     case 6:
                         conn.release();
-                        throw new Error("[EOP302] Unable to find product ".concat(op.product_id, " in order ").concat(op.order_id, "."));
+                        return [2 /*return*/, ({
+                                code: 'EOP302',
+                                error: "Unable to find product ".concat(op.product_id, " in order ").concat(op.order_id, ".")
+                            })];
                     case 7: return [3 /*break*/, 9];
                     case 8:
                         err_6 = _a.sent();
-                        throw new Error("[EOP303] Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                Error: ").concat(err_6));
+                        return [2 /*return*/, ({
+                                code: 'EOP303',
+                                error: "Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                    Error: ").concat(err_6)
+                            })];
                     case 9: return [2 /*return*/];
                 }
             });
@@ -280,20 +313,28 @@ var OrderStore = /** @class */ (function () {
                         }
                         else {
                             conn.release();
-                            throw new Error("[EOP401] Unable to find product ".concat(op.product_id, " in order ").concat(op.order_id, "."));
+                            return [2 /*return*/, ({
+                                    code: 'EOP401',
+                                    error: "Unable to find product ".concat(op.product_id, " in order ").concat(op.order_id, ".")
+                                })];
                         }
                         return [4 /*yield*/, conn.query(sql, [op.order_id, op.product_id])];
                     case 4:
                         result = _a.sent();
-                        console.log(result);
-                        return [3 /*break*/, 6];
+                        return [2 /*return*/];
                     case 5:
                         conn.release();
-                        throw new Error("[EOP402] Unable to find order ".concat(op.order_id, "."));
+                        return [2 /*return*/, ({
+                                code: 'EOP402',
+                                error: "Unable to find order ".concat(op.order_id, ".")
+                            })];
                     case 6: return [3 /*break*/, 8];
                     case 7:
                         err_7 = _a.sent();
-                        throw new Error("[EOP403] Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                Error: ").concat(err_7));
+                        return [2 /*return*/, ({
+                                code: 'EOP403',
+                                error: "Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                    Error: ").concat(err_7)
+                            })];
                     case 8: return [2 /*return*/];
                 }
             });
@@ -319,12 +360,18 @@ var OrderStore = /** @class */ (function () {
                             return [2 /*return*/, order];
                         }
                         else {
-                            throw new Error("[EO401] Could not find order ".concat(id, "."));
+                            return [2 /*return*/, ({
+                                    code: 'EO401',
+                                    error: "Could not find order ".concat(id, ".")
+                                })];
                         }
                         return [3 /*break*/, 4];
                     case 3:
                         err_8 = _a.sent();
-                        throw new Error("[EO402] Could not delete order ".concat(id, ". Error: ").concat(err_8));
+                        return [2 /*return*/, ({
+                                code: 'EO402',
+                                error: "Could not delete order ".concat(id, ". Error: ").concat(err_8)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -349,7 +396,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 3:
                         err_9 = _a.sent();
-                        throw new Error("[EO401] Could not delete order ".concat(id, ". Error: ").concat(err_9));
+                        return [2 /*return*/, ({
+                                code: 'EO501',
+                                error: "Could not delete order ".concat(id, ". Error: ").concat(err_9)
+                            })];
                     case 4: return [2 /*return*/];
                 }
             });
