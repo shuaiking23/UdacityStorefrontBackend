@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { Order, OrderProduct, OrderStore, order_status } from '../models/order';
 import { tokenCheck, CodedError } from '../utilities/common';
 import * as cfg from '../utilities/appConfigs';
@@ -23,7 +23,8 @@ delete '/:id', destroy, token - DISABLED
 */
 
 // Middleware to check order user
-const orderUserCheck = async (req: Request, res: Response, next) => {
+const orderUserCheck = async (req: Request, res: Response, next: NextFunction) => {
+    console.log('orderCheck');
     try {
         const user_id = await store.getOrderUser(parseInt(req.params.id));
         if ((user_id as CodedError).error) {
@@ -43,6 +44,7 @@ const orderUserCheck = async (req: Request, res: Response, next) => {
 
 // Returns the most recent active order
 const showCurrent = async (req: Request, res: Response) => {
+    console.log('showCurrent');
     const order = await store.show(parseInt(res.locals.userid), null);
     if ((order as CodedError).error) {
         res.status(400);

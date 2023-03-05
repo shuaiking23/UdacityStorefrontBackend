@@ -97,7 +97,6 @@ var index = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
                 if (users.error) {
                     res.status(400);
                 }
-                ;
                 res.json(users);
                 return [3 /*break*/, 3];
             case 2:
@@ -109,7 +108,7 @@ var index = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
     });
 }); };
 // RU1 Index [token required]
-route.get(cfg.URL_BLANK, (0, common_1.token_check)(null), index);
+route.get(cfg.URL_BLANK, (0, common_1.tokenCheck)(null), index);
 var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var username, password, u, token, err_2;
     return __generator(this, function (_a) {
@@ -130,7 +129,7 @@ var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0
                 else {
                     token = jsonwebtoken_1["default"].sign({ id: u.id, user: u.username }, process.env.TOKEN_SECRET);
                     res.json({
-                        'token': token
+                        token: token
                     });
                 }
                 return [3 /*break*/, 4];
@@ -153,16 +152,15 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
                 if (user.error) {
                     res.status(400);
                 }
-                ;
                 res.json(user);
                 return [2 /*return*/];
         }
     });
 }); };
 // RU2 Show [token required]
-route.get(cfg.URL_ID, (0, common_1.token_check)(0), show);
+route.get(cfg.URL_ID, (0, common_1.tokenCheck)(0), show);
 var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user, newUser, token, err_3;
+    var user, newUser, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -182,20 +180,18 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     res.status(400).json(newUser);
                     return [2 /*return*/];
                 }
-                ;
-                token = jsonwebtoken_1["default"].sign({ user: newUser }, process.env.TOKEN_SECRET);
-                res.json(token);
+                res.json(newUser);
                 return [3 /*break*/, 4];
             case 3:
                 err_3 = _a.sent();
-                res.status(400).json(err_3 + user);
+                res.status(400).json(err_3);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 // RU3 Create N[token required]
-route.post(cfg.URL_BLANK, (0, common_1.token_check)(null), create);
+route.post(cfg.URL_BLANK, (0, common_1.tokenCheck)(null), create);
 var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var deleted;
     return __generator(this, function (_a) {
@@ -206,11 +202,10 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 if (deleted.error) {
                     res.status(400);
                 }
-                ;
                 res.json(deleted);
                 return [2 /*return*/];
         }
     });
 }); };
-// route.delete('/:id', token_check(null), destroy);
+// route.delete('/:id', tokenCheck(null), destroy);
 exports["default"] = route;

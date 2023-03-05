@@ -68,10 +68,10 @@ var UserStore = /** @class */ (function () {
                         return [2 /*return*/, result.rows];
                     case 3:
                         err_1 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EU101',
                                 error: "Could not get users. Error: ".concat(err_1)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -84,7 +84,7 @@ var UserStore = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        sql = "SELECT * \n                FROM users\n                WHERE id=($1) AND NOT historic";
+                        sql = "SELECT id, firstname, lastname, username\n                FROM users\n                WHERE id=($1) AND NOT historic";
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
@@ -95,10 +95,10 @@ var UserStore = /** @class */ (function () {
                         return [2 /*return*/, result.rows[0]];
                     case 3:
                         err_2 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EU201',
                                 error: "Could not find user ".concat(id, ". Error: ").concat(err_2)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -111,7 +111,7 @@ var UserStore = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        sql = "INSERT INTO users (\n                    firstname, lastname, username, password)\n                VALUES($1, $2, $3) RETURNING *";
+                        sql = "INSERT INTO users (\n                    firstname, lastname, username, password)\n                VALUES($1, $2, $3, $4)\n                RETURNING id, firstname, lastname, username";
                         hash = bcrypt_1["default"].hashSync(u.password + pepper, saltRounds);
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
@@ -119,6 +119,7 @@ var UserStore = /** @class */ (function () {
                         return [4 /*yield*/, conn.query(sql, [
                                 u.firstname,
                                 u.lastname,
+                                u.username,
                                 hash,
                             ])];
                     case 2:
@@ -128,10 +129,10 @@ var UserStore = /** @class */ (function () {
                         return [2 /*return*/, user];
                     case 3:
                         err_3 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EU301',
-                                error: "Could not add new user ".concat(name, ". Error: ").concat(err_3)
-                            })];
+                                error: "Could not add new user ".concat(u.firstname, " ").concat(u.lastname, ". Error: ").concat(err_3)
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -156,10 +157,10 @@ var UserStore = /** @class */ (function () {
                         return [2 /*return*/, user];
                     case 3:
                         err_4 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EU401',
                                 error: "Could not delete user ".concat(id, ". Error: ").concat(err_4)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -186,26 +187,26 @@ var UserStore = /** @class */ (function () {
                                 return [2 /*return*/, user];
                             }
                             else {
-                                return [2 /*return*/, ({
+                                return [2 /*return*/, {
                                         code: 'EU501',
                                         error: 'Incorrect username/password.'
-                                    })];
+                                    }];
                             }
                         }
                         else {
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EU502',
                                     error: 'Incorrect username/password.'
-                                })];
+                                }];
                         }
                         return [3 /*break*/, 4];
                     case 3:
                         err_5 = _a.sent();
                         console.log(err_5);
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EU503',
                                 error: "Unable to authenticate user ".concat(username, ". Error: ").concat(err_5)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });

@@ -58,31 +58,29 @@ var OrderStore = /** @class */ (function () {
                     case 0:
                         _a.trys.push([0, 4, , 5]);
                         if (user_id === null && order_id === null) {
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EOP101',
                                     error: 'Either user or order must be provided.'
-                                })];
+                                }];
                         }
-                        ;
-                        order_sql = "SELECT id, user_id, status, created\n                FROM orders\n                WHERE (\n                    (($1)::integer NOTNULL AND user_id = ($1) AND status = 'Active')\n                        OR id = ($2))\n                    AND NOT historic\n                ORDER BY created desc\n                LIMIT 1";
+                        order_sql = "SELECT id, user_id, status, created\n                FROM orders\n                WHERE (\n                    (($1)::integer NOTNULL AND user_id = ($1) AND status = 'Active')\n                        OR id = ($2))\n                    AND NOT historic\n                ORDER BY created, id desc\n                LIMIT 1";
                         order_products_sql = "SELECT * FROM products_in_order($1)";
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
                         return [4 /*yield*/, conn.query(order_sql, [
                                 user_id,
-                                order_id
+                                order_id,
                             ])];
                     case 2:
                         result = _a.sent();
                         if (!result.rows.length) {
                             conn.release();
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EOP101',
-                                    error: "Order does not exist."
-                                })];
+                                    error: "No Active orders for user ".concat(user_id, ".")
+                                }];
                         }
-                        ;
                         o = result.rows[0];
                         return [4 /*yield*/, conn.query(order_products_sql, [o.id])];
                     case 3:
@@ -99,10 +97,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 4:
                         err_1 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EO102',
                                 error: "Could not retrieve order. Error: ".concat(err_1)
-                            })];
+                            }];
                     case 5: return [2 /*return*/];
                 }
             });
@@ -123,7 +121,7 @@ var OrderStore = /** @class */ (function () {
                         order_list = [];
                         return [4 /*yield*/, conn.query(orders_sql, [
                                 user_id,
-                                status
+                                status,
                             ])];
                     case 2:
                         result = _a.sent();
@@ -138,7 +136,9 @@ var OrderStore = /** @class */ (function () {
                     case 4:
                         if (!(_i < order_list_1.length)) return [3 /*break*/, 7];
                         order = order_list_1[_i];
-                        return [4 /*yield*/, conn.query(order_products_sql, [order.id])];
+                        return [4 /*yield*/, conn.query(order_products_sql, [
+                                order.id,
+                            ])];
                     case 5:
                         result2 = _a.sent();
                         op = result2.rows;
@@ -148,15 +148,14 @@ var OrderStore = /** @class */ (function () {
                         _i++;
                         return [3 /*break*/, 4];
                     case 7:
-                        ;
                         conn.release();
                         return [2 /*return*/, order_list];
                     case 8:
                         err_2 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EO102',
                                 error: "Could not retrieve order. Error: ".concat(err_2)
-                            })];
+                            }];
                     case 9: return [2 /*return*/];
                 }
             });
@@ -181,10 +180,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 3:
                         err_3 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EO201',
                                 error: "Could not add new order ".concat(o, ". Error: ").concat(err_3)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -209,18 +208,18 @@ var OrderStore = /** @class */ (function () {
                             return [2 /*return*/, result.rows[0].user_id];
                         }
                         else {
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EO301',
                                     error: "Order ".concat(id, " does not exist.")
-                                })];
+                                }];
                         }
                         return [3 /*break*/, 4];
                     case 3:
                         err_4 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EO302',
                                 error: "Could not retrieve order ".concat(id, ". Error: ").concat(err_4)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -248,28 +247,28 @@ var OrderStore = /** @class */ (function () {
                             order_1 = result.rows[0];
                             if (order_1.status !== 'Active') {
                                 conn.release();
-                                return [2 /*return*/, ({
+                                return [2 /*return*/, {
                                         code: 'EOP101',
                                         error: "Could not add product ".concat(op.product_id, " to order ").concat(op.order_id, " \n                            because order status is ").concat(order_1.status)
-                                    })];
+                                    }];
                             }
                         }
                         else {
                             conn.release();
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EOP102',
                                     error: "Order ".concat(op.order_id, " is not valid.")
-                                })];
+                                }];
                         }
                         return [4 /*yield*/, conn.query(product_sql, [op.product_id])];
                     case 3:
                         result = _a.sent();
                         if (!result.rows.length) {
                             conn.release();
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EOP103',
                                     error: "Product ".concat(op.product_id, " is not valid.")
-                                })];
+                                }];
                         }
                         return [4 /*yield*/, conn.query(exists_sql, [op.order_id, op.product_id])];
                     case 4:
@@ -291,10 +290,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 6:
                         err_5 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EOP104',
                                 error: "Could not add product ".concat(op.product_id, " to order ").concat(op.order_id, ".\n                    Error: ").concat(err_5)
-                            })];
+                            }];
                     case 7: return [2 /*return*/];
                 }
             });
@@ -318,10 +317,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 3:
                         err_6 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EOP201',
                                 error: "Could not get products from order ".concat(orderId, ".\n                Error: ").concat(err_6)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -339,7 +338,10 @@ var OrderStore = /** @class */ (function () {
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
-                        return [4 /*yield*/, conn.query(order_product_sql, [op.order_id, op.product_id])];
+                        return [4 /*yield*/, conn.query(order_product_sql, [
+                                op.order_id,
+                                op.product_id,
+                            ])];
                     case 2:
                         result = _a.sent();
                         if (!result.rows.length) return [3 /*break*/, 6];
@@ -347,10 +349,10 @@ var OrderStore = /** @class */ (function () {
                         quantity = result.rows[0];
                         if (op.quantity > quantity) {
                             conn.release();
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EOP301',
                                     error: "Unable to remove ".concat(op.quantity, " quantity\n                                from product ").concat(op.product_id, " in order ").concat(op.order_id, ".")
-                                })];
+                                }];
                         }
                         return [3 /*break*/, 5];
                     case 3: return [4 /*yield*/, this.removeProduct(op)];
@@ -360,17 +362,17 @@ var OrderStore = /** @class */ (function () {
                     case 5: return [3 /*break*/, 7];
                     case 6:
                         conn.release();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EOP302',
                                 error: "Unable to find product ".concat(op.product_id, " in order ").concat(op.order_id, ".")
-                            })];
+                            }];
                     case 7: return [3 /*break*/, 9];
                     case 8:
                         err_7 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EOP303',
                                 error: "Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                    Error: ").concat(err_7)
-                            })];
+                            }];
                     case 9: return [2 /*return*/];
                 }
             });
@@ -395,7 +397,10 @@ var OrderStore = /** @class */ (function () {
                         result = _a.sent();
                         if (!result.rows.length) return [3 /*break*/, 5];
                         status_active = result.rows[0];
-                        return [4 /*yield*/, conn.query(exists_sql, [op.order_id, op.product_id])];
+                        return [4 /*yield*/, conn.query(exists_sql, [
+                                op.order_id,
+                                op.product_id,
+                            ])];
                     case 3:
                         result = _a.sent();
                         sql = historic_sql;
@@ -407,10 +412,10 @@ var OrderStore = /** @class */ (function () {
                         }
                         else {
                             conn.release();
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EOP401',
                                     error: "Unable to find product ".concat(op.product_id, " in order ").concat(op.order_id, ".")
-                                })];
+                                }];
                         }
                         return [4 /*yield*/, conn.query(sql, [op.order_id, op.product_id])];
                     case 4:
@@ -418,17 +423,17 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/];
                     case 5:
                         conn.release();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EOP402',
                                 error: "Unable to find order ".concat(op.order_id, ".")
-                            })];
+                            }];
                     case 6: return [3 /*break*/, 8];
                     case 7:
                         err_8 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EOP403',
                                 error: "Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                    Error: ").concat(err_8)
-                            })];
+                            }];
                     case 8: return [2 /*return*/];
                 }
             });
@@ -454,18 +459,18 @@ var OrderStore = /** @class */ (function () {
                             return [2 /*return*/, order];
                         }
                         else {
-                            return [2 /*return*/, ({
+                            return [2 /*return*/, {
                                     code: 'EO401',
                                     error: "Could not find order ".concat(id, ".")
-                                })];
+                                }];
                         }
                         return [3 /*break*/, 4];
                     case 3:
                         err_9 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EO402',
                                 error: "Could not delete order ".concat(id, ". Error: ").concat(err_9)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -490,10 +495,10 @@ var OrderStore = /** @class */ (function () {
                         return [2 /*return*/, order];
                     case 3:
                         err_10 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EO501',
                                 error: "Could not delete order ".concat(id, ". Error: ").concat(err_10)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });

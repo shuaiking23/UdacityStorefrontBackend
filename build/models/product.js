@@ -63,10 +63,10 @@ var ProductStore = /** @class */ (function () {
                         return [2 /*return*/, result.rows];
                     case 3:
                         err_1 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EP101',
                                 error: "Could not get products. Error: ".concat(err_1)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -87,13 +87,22 @@ var ProductStore = /** @class */ (function () {
                     case 2:
                         result = _a.sent();
                         conn.release();
-                        return [2 /*return*/, result.rows[0]];
+                        if (!result.rows.length) {
+                            return [2 /*return*/, {
+                                    code: 'EP201',
+                                    error: "Could not find product ".concat(id, ".")
+                                }];
+                        }
+                        else {
+                            return [2 /*return*/, result.rows[0]];
+                        }
+                        return [3 /*break*/, 4];
                     case 3:
                         err_2 = _a.sent();
-                        return [2 /*return*/, ({
-                                code: 'EP201',
+                        return [2 /*return*/, {
+                                code: 'EP202',
                                 error: "Could not find product ".concat(id, ". Error: ").concat(err_2)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -101,27 +110,33 @@ var ProductStore = /** @class */ (function () {
     };
     ProductStore.prototype.create = function (p) {
         return __awaiter(this, void 0, void 0, function () {
-            var sql, conn, result, product, err_3;
+            var sql, conn, result, p_result, product, err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        sql = "INSERT INTO products (name, category) \n                VALUES($1, $2) RETURNING *";
+                        sql = "INSERT INTO products (name, category, price) \n                VALUES($1, $2, $3) RETURNING *";
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
-                        return [4 /*yield*/, conn.query(sql, [p.name, p.category])];
+                        return [4 /*yield*/, conn.query(sql, [p.name, p.category, p.price])];
                     case 2:
                         result = _a.sent();
-                        product = result.rows[0];
+                        p_result = result.rows[0];
+                        product = {
+                            id: p_result.id,
+                            name: p_result.name,
+                            price: p_result.price,
+                            category: p_result.category
+                        };
                         conn.release();
                         return [2 /*return*/, product];
                     case 3:
                         err_3 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EP301',
-                                error: "Could not add new product ".concat(name, ". Error: ").concat(err_3)
-                            })];
+                                error: "Could not add new product ".concat(p.name, ". Error: ").concat(err_3)
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -146,23 +161,23 @@ var ProductStore = /** @class */ (function () {
                         return [2 /*return*/, product];
                     case 3:
                         err_4 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EP401',
                                 error: "Could not delete product ".concat(id, ". Error: ").concat(err_4)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });
         });
     };
-    ProductStore.prototype.top5 = function () {
+    ProductStore.prototype.topN = function (top_num) {
         return __awaiter(this, void 0, void 0, function () {
             var sql, conn, result, products, err_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        sql = "SELECT top_selling_products(5);";
+                        sql = "SELECT tp.id, tp.name, tp.historic, \n                    tp.order_quantity as order_sum\n                FROM top_selling_products(".concat(top_num, ") tp");
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
@@ -174,10 +189,10 @@ var ProductStore = /** @class */ (function () {
                         return [2 /*return*/, products];
                     case 3:
                         err_5 = _a.sent();
-                        return [2 /*return*/, ({
+                        return [2 /*return*/, {
                                 code: 'EP501',
                                 error: "Could not get top5 products. Error: ".concat(err_5)
-                            })];
+                            }];
                     case 4: return [2 /*return*/];
                 }
             });

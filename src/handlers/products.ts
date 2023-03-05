@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { Product, ProductStore } from '../models/product';
-import { token_check, CodedError } from '../utilities/common';
+import { tokenCheck, CodedError } from '../utilities/common';
 import * as cfg from '../utilities/appConfigs';
 
 const route = express.Router();
@@ -26,10 +26,13 @@ get '/top5', top5, public
 
 const index = async (req: Request, res: Response) => {
     // Optionally allow filter by category
-    var category = req.query.category as string;
+    console.log(req);
+    var category: string | null = req.query.category as string;
     if (!category) {
         category = null;
     }
+    console.log('here');
+    console.log(category);
 
     const products = await store.index(category);
     if ((products as CodedError).error) {
@@ -78,11 +81,11 @@ const destroy = async (req: Request, res: Response) => {
     }
     res.json(deleted);
 };
-// route.delete('/:id', token_check(null), destroy);
+// route.delete('/:id', tokenCheck(null), destroy);
 
 const topN = (t_num: number) => {
     return async (req: Request, res: Response) => {
-        const topProducts = await store.top_n(5);
+        const topProducts = await store.topN(5);
         if ((topProducts as CodedError).error) {
             res.status(400);
         }
@@ -90,6 +93,6 @@ const topN = (t_num: number) => {
     };
 };
 // RP04 [OPTIONAL] Top 5 most popular products
-route.get('/top5', top_n(5));
+route.get('/top5', topN(5));
 
 export default route;

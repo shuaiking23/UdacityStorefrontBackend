@@ -39,7 +39,7 @@ var routes = express_1["default"].Router();
 var address = cfg.FULLHOST;
 app.use((0, cors_1["default"])());
 app.use(body_parser_1["default"].json());
-app.use((0, multer_1["default"])().array());
+app.use(multer_1["default"]);
 //app.use(express.urlencoded({ extended: true }));
 app.use(cfg.URL_CONTEXT, routes);
 app.get('*', function (req, res) {

@@ -13,16 +13,19 @@ const address: string = cfg.FULLHOST;
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(multer().array());
+app.use(multer);
 //app.use(express.urlencoded({ extended: true }));
 app.use(cfg.URL_CONTEXT, routes);
 
-app.get('*', function (req, res) {
+/*
+app.get('*', (req: Request, res: Response) => {
     res.status(404).send('Page Not Found!');
 });
+*/
 
 routes.get('/', (req: Request, res: Response) => {
     res.send('Storefront API');
+    return;
 });
 
 routes.use('/users', userRoutes);
@@ -33,4 +36,4 @@ app.listen(3000, () => {
     console.log(`starting app on: ${address}`);
 });
 
-export default app;
+export default routes;

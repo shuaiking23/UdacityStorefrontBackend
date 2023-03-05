@@ -51,7 +51,7 @@ const authenticate = async (req: Request, res: Response) => {
         } else {
             var token = jwt.sign(
                 { id: (u as User).id, user: (u as User).username },
-                process.env.TOKEN_SECRET
+                process.env.TOKEN_SECRET as string
             );
             res.json({
                 token: token,
@@ -88,7 +88,7 @@ const create = async (req: Request, res: Response) => {
         }
         res.json(newUser);
     } catch (err) {
-        res.status(400).json(err + user);
+        res.status(400).json(err);
     }
 };
 // RU3 Create N[token required]

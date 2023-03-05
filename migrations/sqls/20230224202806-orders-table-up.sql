@@ -5,7 +5,7 @@ CREATE TYPE enum_order_status AS ENUM (
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    status enum_order_status NOT NULL,
+    status enum_order_status NOT NULL DEFAULT 'Active'::enum_order_status,
     notes TEXT,
     created TIMESTAMP NOT NULL DEFAULT now(),
     last_update TIMESTAMP NOT NULL DEFAULT now(),

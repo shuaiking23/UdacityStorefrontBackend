@@ -53,38 +53,40 @@ RO2 [OPTIONAL] Completed Orders by user (args: user id)[token required] - DONE
 /*
 get '/current', showCurrent, token
 get '/completed', showByStatus(order_status.Complete), token
-get '/active', showByStatus(order_status.Active), token
+get '/active', showByStatus(order_status.Active), token - DISABLED
 get '/:id', show, token - DISABLED
 post '/', create, token - DISABLED
 delete '/:id', destroy, token - DISABLED
 */
 // Middleware to check order user
-var order_user_check = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+var orderUserCheck = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var user_id, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, store.getOrderUser(parseInt(req.params.id))];
+                console.log('orderCheck');
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, store.getOrderUser(parseInt(req.params.id))];
+            case 2:
                 user_id = _a.sent();
                 if (user_id.error) {
                     res.status(400).json(user_id);
                     return [2 /*return*/];
                 }
-                ;
                 if (user_id != res.locals.userid) {
-                    res.status(403).json(({
+                    res.status(403).json({
                         code: 'EOH101',
                         error: "You have no access to this order"
-                    }));
+                    });
                     return [2 /*return*/];
                 }
-                return [3 /*break*/, 3];
-            case 2:
-                err_1 = _a.sent();
-                return [3 /*break*/, 3];
+                return [3 /*break*/, 4];
             case 3:
+                err_1 = _a.sent();
+                return [3 /*break*/, 4];
+            case 4:
                 next();
                 return [2 /*return*/];
         }
@@ -95,7 +97,9 @@ var showCurrent = function (req, res) { return __awaiter(void 0, void 0, void 0,
     var order;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, store.show(parseInt(res.locals.userid), null)];
+            case 0:
+                console.log('showCurrent');
+                return [4 /*yield*/, store.show(parseInt(res.locals.userid), null)];
             case 1:
                 order = _a.sent();
                 if (order.error) {
@@ -107,7 +111,7 @@ var showCurrent = function (req, res) { return __awaiter(void 0, void 0, void 0,
     });
 }); };
 // RO1 Current Order by user (args: user id)[token required]
-route.get('/current', (0, common_1.token_check)(null), showCurrent);
+route.get('/current', (0, common_1.tokenCheck)(null), showCurrent);
 var showByStatus = function (status) {
     return function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
         var order;
@@ -120,7 +124,7 @@ var showByStatus = function (status) {
                         res.status(400);
                     }
                     res.json({
-                        'record_count': order.length,
+                        record_count: order.length,
                         order: order
                     });
                     return [2 /*return*/];
@@ -129,8 +133,8 @@ var showByStatus = function (status) {
     }); };
 };
 // RO2 [OPTIONAL] Completed Orders by user (args: user id)[token required]
-route.get('/completed', (0, common_1.token_check)(null), showByStatus(order_1.order_status.Complete));
-route.get('/active', (0, common_1.token_check)(null), showByStatus(order_1.order_status.Active));
+route.get('/completed', (0, common_1.tokenCheck)(null), showByStatus(order_1.order_status.Complete));
+//route.get('/active', tokenCheck(null), showByStatus(order_status.Active));
 var show = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var order;
     return __generator(this, function (_a) {
@@ -153,7 +157,7 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
         }
     });
 }); };
-//route.get(cfg.URL_ID, token_check(null), order_user_check, show);
+//route.get(cfg.URL_ID, tokenCheck(null), order_user_check, show);
 var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var order, newOrder, err_2;
     return __generator(this, function (_a) {
@@ -171,7 +175,6 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     res.status(400).json(newOrder);
                     return [2 /*return*/];
                 }
-                ;
                 res.json(newOrder);
                 return [3 /*break*/, 3];
             case 2:
@@ -182,7 +185,7 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
         }
     });
 }); };
-// route.post(cfg.URL_BLANK, token_check(null), create);
+// route.post(cfg.URL_BLANK, tokenCheck(null), create);
 var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var deleted;
     return __generator(this, function (_a) {
@@ -194,13 +197,12 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                     res.status(400).json(deleted);
                     return [2 /*return*/];
                 }
-                ;
                 res.json(deleted);
                 return [2 /*return*/];
         }
     });
 }); };
-// route.delete('/:id', token_check(null), order_user_check, destroy);
+// route.delete('/:id', token_check(null), orderUserCheck, destroy);
 // Order Product Routes
 /*
 post '/:id/products', showProducts - Disabled
@@ -220,7 +222,6 @@ var showProducts = function (req, res) { return __awaiter(void 0, void 0, void 0
                     res.status(400).json(orderProducts);
                     return [2 /*return*/];
                 }
-                ;
                 res.json(orderProducts);
                 return [3 /*break*/, 3];
             case 2:
@@ -231,7 +232,7 @@ var showProducts = function (req, res) { return __awaiter(void 0, void 0, void 0
         }
     });
 }); };
-// route.post(cfg.URL_ID + cfg.URL_PRODUCT, token_check(null), order_user_check, showProducts);
+// route.post(cfg.URL_ID + cfg.URL_PRODUCT, tokenCheck(null), orderUserCheck, showProducts);
 var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var op, addedProduct, err_4;
     return __generator(this, function (_a) {
@@ -251,7 +252,6 @@ var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 if (addedProduct.error) {
                     res.status(400).json(addedProduct);
                 }
-                ;
                 res.json(addedProduct);
                 return [3 /*break*/, 4];
             case 3:
@@ -262,7 +262,7 @@ var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, 
         }
     });
 }); };
-// route.post(`${cfg.URL_ID}${cfg.URL_PRODUCT}/add`, token_check(null), order_user_check, addProduct);
+// route.post(`${cfg.URL_ID}${cfg.URL_PRODUCT}/add`, tokenCheck(null), orderUserCheck, addProduct);
 var reduceProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var op, reduceProduct_1, err_5;
     return __generator(this, function (_a) {
@@ -282,7 +282,6 @@ var reduceProduct = function (req, res) { return __awaiter(void 0, void 0, void 
                 if (reduceProduct_1.error) {
                     res.status(400);
                 }
-                ;
                 res.json(reduceProduct_1);
                 return [3 /*break*/, 4];
             case 3:
@@ -293,5 +292,5 @@ var reduceProduct = function (req, res) { return __awaiter(void 0, void 0, void 
         }
     });
 }); };
-// route.post(`${cfg.URL_ID}${cfg.URL_PRODUCT}/reduce`, token_check(null), order_user_check, reduceProduct);
+// route.post(`${cfg.URL_ID}${cfg.URL_PRODUCT}/reduce`, tokenCheck(null), orderUserCheck, reduceProduct);
 exports["default"] = route;

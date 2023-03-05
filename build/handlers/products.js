@@ -70,11 +70,11 @@ var route = express_1["default"].Router();
 var store = new product_1.ProductStore();
 // Requirements
 /*
-RP01 Index - DONE
-RP02 Show - DONE
-RP03 Create [token required] - DONE
-RP04 [OPTIONAL] Top 5 most popular products - DONE
-RP05 [OPTIONAL] Products by category (args: product category) - DONE
+RP1 Index - DONE
+RP2 Show - DONE
+RP3 Create [token required] - DONE
+RP4 [OPTIONAL] Top 5 most popular products - DONE
+RP5 [OPTIONAL] Products by category (args: product category) - DONE
 */
 // Product Routes
 /*
@@ -99,7 +99,6 @@ var index = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
                 if (products.error) {
                     res.status(400);
                 }
-                ;
                 res.json(products);
                 return [2 /*return*/];
         }
@@ -118,7 +117,6 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
                 if (product.error) {
                     res.status(400);
                 }
-                ;
                 res.json(product);
                 return [2 /*return*/];
         }
@@ -143,7 +141,6 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 if (newProduct.error) {
                     res.status(400);
                 }
-                ;
                 res.json(newProduct);
                 return [3 /*break*/, 3];
             case 2:
@@ -155,7 +152,7 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
     });
 }); };
 // RP03 Create [token required]
-route.post(cfg.URL_BLANK, (0, common_1.token_check)(null), create);
+route.post(cfg.URL_BLANK, (0, common_1.tokenCheck)(null), create);
 var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var deleted;
     return __generator(this, function (_a) {
@@ -166,29 +163,29 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 if (deleted.error) {
                     res.status(400);
                 }
-                ;
                 res.json(deleted);
                 return [2 /*return*/];
         }
     });
 }); };
-// route.delete('/:id', token_check(null), destroy);
-var top5 = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var topProducts;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, store.top5()];
-            case 1:
-                topProducts = _a.sent();
-                if (topProducts.error) {
-                    res.status(400);
-                }
-                ;
-                res.json(topProducts);
-                return [2 /*return*/];
-        }
-    });
-}); };
+// route.delete('/:id', tokenCheck(null), destroy);
+var topN = function (t_num) {
+    return function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+        var topProducts;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, store.topN(5)];
+                case 1:
+                    topProducts = _a.sent();
+                    if (topProducts.error) {
+                        res.status(400);
+                    }
+                    res.json(topProducts);
+                    return [2 /*return*/];
+            }
+        });
+    }); };
+};
 // RP04 [OPTIONAL] Top 5 most popular products
-route.get('/top5', top5);
+route.get('/top5', topN(5));
 exports["default"] = route;

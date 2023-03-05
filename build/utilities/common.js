@@ -39,43 +39,50 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.token_check = void 0;
+exports.tokenCheck = void 0;
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var token_check = function (user_id) {
+var tokenCheck = function (user_id) {
     return function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-        var bearerHeader, token, decoded;
+        var bearerHeader, token, decoded, decoded_id;
         return __generator(this, function (_a) {
+            console.log('authy');
+            console.log(typeof req);
+            console.log(typeof res);
+            console.log(typeof next);
             try {
                 bearerHeader = req.headers.authorization;
                 if (typeof bearerHeader !== 'undefined') {
                     token = bearerHeader.split(' ')[1];
                     decoded = jsonwebtoken_1["default"].verify(token, process.env.TOKEN_SECRET);
-                    // match user_id if not null
-                    // if user_id = 0, take id from param
-                    // else skip matching
-                    if ((user_id != null && decoded.id !== user_id) ||
-                        (user_id == 0 && decoded.id != parseInt(req.params.id))) {
-                        res.status(401).json(({
+                    decoded_id = decoded.id;
+                    console.log('authy2');
+                    if ((user_id != null && decoded_id !== user_id) ||
+                        (user_id == 0 && decoded_id != parseInt(req.params.id))) {
+                        console.log('authy3');
+                        res.status(401).json({
                             code: 'EC101',
                             error: 'User id does not match!'
-                        }));
+                        });
                         return [2 /*return*/];
                     }
                     res.locals.userid = decoded.id;
                 }
                 else {
-                    res.status(401).json(({
+                    console.log('authy4');
+                    res.status(401).json({
                         code: 'EC102',
                         error: 'Missing authorisation token!'
-                    }));
+                    });
                     return [2 /*return*/];
                 }
             }
             catch (err) {
-                res.status(401).json(({
+                console.log('authy5');
+                console.log(err);
+                res.status(401).json({
                     code: 'EC103',
                     error: "Error occurred. ".concat(err)
-                }));
+                });
                 return [2 /*return*/];
             }
             next();
@@ -83,4 +90,4 @@ var token_check = function (user_id) {
         });
     }); };
 };
-exports.token_check = token_check;
+exports.tokenCheck = tokenCheck;
