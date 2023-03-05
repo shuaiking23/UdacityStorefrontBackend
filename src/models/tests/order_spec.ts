@@ -49,7 +49,7 @@ describe('Order Model', () => {
             }
         });
 
-        it(`show method should return the most recent active order for user
+        it(`RO1 show method should return the most recent active order for user
                 when user id is provided`, async () => {
             try {
                 const user_id = 1;
@@ -81,7 +81,7 @@ describe('Order Model', () => {
             }
         });
 
-        it(`show method should return error
+        it(`RO1 show method should return error
                 when user provided has no active orders`, async () => {
             try {
                 const user_id = 3;

@@ -16,7 +16,7 @@ RO2 [OPTIONAL] Completed Orders by user (args: user id)[token required] - DONE
 /*
 get '/current', showCurrent, token
 get '/completed', showByStatus(order_status.Complete), token
-get '/active', showByStatus(order_status.Active), token
+get '/active', showByStatus(order_status.Active), token - DISABLED
 get '/:id', show, token - DISABLED
 post '/', create, token - DISABLED
 delete '/:id', destroy, token - DISABLED
@@ -69,7 +69,7 @@ const showByStatus = (status: order_status) => {
 };
 // RO2 [OPTIONAL] Completed Orders by user (args: user id)[token required]
 route.get('/completed', tokenCheck(null), showByStatus(order_status.Complete));
-route.get('/active', tokenCheck(null), showByStatus(order_status.Active));
+//route.get('/active', tokenCheck(null), showByStatus(order_status.Active));
 
 const show = async (req: Request, res: Response) => {
     const order = await store.show(null, parseInt(req.params.id));
