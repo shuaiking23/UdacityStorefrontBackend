@@ -36,4 +36,4 @@ app.listen(3000, () => {
     console.log(`starting app on: ${address}`);
 });
 
-export default routes;
+export default app;
