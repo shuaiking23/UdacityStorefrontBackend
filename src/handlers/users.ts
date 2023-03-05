@@ -86,8 +86,7 @@ const create = async (req: Request, res: Response) => {
             res.status(400).json(newUser);
             return;
         }
-        var token = jwt.sign({ user: newUser }, process.env.TOKEN_SECRET);
-        res.json(token);
+        res.json(newUser);
     } catch (err) {
         res.status(400).json(err + user);
     }

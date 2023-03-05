@@ -43,7 +43,7 @@
 - [x] RP5 [OPTIONAL] Products by category (args: product category)
 	- `get '/products?category={{category}}'`
 	- Category filter is provided as an optional query parameter on index as `?category`
-	- Sample data uses the following categories
+	- Sample data uses the following categories (options are not case sensitive)
 		- Food
 		- Drinks
 		- Merch
@@ -62,4 +62,4 @@
 		- lastname
 		- username
 		- password
-	- Returns information about the user created
+	- Returns information about the user created (password not returned)
