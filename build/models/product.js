@@ -55,7 +55,7 @@ var ProductStore = /** @class */ (function () {
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
-                        sql = "SELECT id, name, category,\n                    created, last_update\n                FROM products\n                WHERE NOT historic\n                    AND (".concat(1, " IS NULL\n                        OR category ILIKE ").concat(1, ")\n                ORDER BY name");
+                        sql = "SELECT id, name, category,\n                    created, last_update\n                FROM products\n                WHERE NOT historic\n                    AND (($1)::text IS NULL\n                        OR category ILIKE ($1)::text)\n                ORDER BY name";
                         return [4 /*yield*/, conn.query(sql, [category])];
                     case 2:
                         result = _a.sent();
@@ -149,6 +149,34 @@ var ProductStore = /** @class */ (function () {
                         return [2 /*return*/, ({
                                 code: 'EP401',
                                 error: "Could not delete product ".concat(id, ". Error: ").concat(err_4)
+                            })];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ProductStore.prototype.top5 = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var sql, conn, result, products, err_5;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        sql = "SELECT top_selling_products(5);";
+                        return [4 /*yield*/, database_1["default"].connect()];
+                    case 1:
+                        conn = _a.sent();
+                        return [4 /*yield*/, conn.query(sql)];
+                    case 2:
+                        result = _a.sent();
+                        products = result.rows;
+                        conn.release();
+                        return [2 /*return*/, products];
+                    case 3:
+                        err_5 = _a.sent();
+                        return [2 /*return*/, ({
+                                code: 'EP501',
+                                error: "Could not get top5 products. Error: ".concat(err_5)
                             })];
                     case 4: return [2 /*return*/];
                 }

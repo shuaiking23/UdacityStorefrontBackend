@@ -7,61 +7,132 @@ export enum order_status {
     Complete = 'Complete',
 }
 
-export type Order = {
-    id?: number;
-    user_id: number;
-    status: order_status;
-};
-
 export type OrderProduct = {
     id?: number;
     order_id: number;
     product_id: number;
     name?: string;
+    unit_price?: number;
     quantity?: number;
 };
 
+export type Order = {
+    id?: number;
+    user_id: number;
+    status: order_status;
+    created?: string;
+    products?: OrderProduct[];
+};
+
 export class OrderStore {
-    async index(): Promise<Order[] | CodedError> {
+    async show(
+        user_id: number | null,
+        order_id: number | null
+    ): Promise<Order | CodedError> {
         try {
+            if (user_id === null && order_id === null) {
+                return {
+                    code: 'EOP101',
+                    error: 'Either user or order must be provided.',
+                } as CodedError;
+            }
+            const order_sql = `SELECT id, user_id, status, created
+                FROM orders
+                WHERE (
+                    (($1)::integer NOTNULL AND user_id = ($1) AND status = 'Active')
+                        OR id = ($2))
+                    AND NOT historic
+                ORDER BY created, id desc
+                LIMIT 1`;
+
+            const order_products_sql = `SELECT * FROM products_in_order($1)`;
             // @ts-ignore
             const conn = await Client.connect();
-            const sql = `SELECT id, user_id, status, created, 
-                    created, last_update
-                FROM orders
-                WHERE NOT historic`;
 
-            const result = await conn.query(sql);
+            let result = await conn.query(order_sql, [
+                user_id as unknown as string,
+                order_id as unknown as string,
+            ]);
+
+            if (!result.rows.length) {
+                conn.release();
+                return {
+                    code: 'EOP101',
+                    error: `No Active orders for user ${user_id}.`,
+                } as CodedError;
+            }
+
+            const o = result.rows[0];
+            result = await conn.query(order_products_sql, [o.id]);
 
             conn.release();
 
-            return result.rows;
+            const op: OrderProduct[] = result.rows;
+
+            const order: Order = {
+                id: o.id,
+                user_id: o.user_id,
+                status: o.status,
+                created: o.created,
+                products: op,
+            };
+
+            return order;
         } catch (err) {
-            return ({
-                code: 'EO101',
-                error: `Could not get orders. Error: ${err}`
-            }) as CodedError;
+            return {
+                code: 'EO102',
+                error: `Could not retrieve order. Error: ${err}`,
+            } as CodedError;
         }
     }
 
-    async show(id: number): Promise<Order | CodedError> {
+    async showByStatus(
+        user_id: number,
+        status: order_status
+    ): Promise<Order[] | CodedError> {
         try {
-            const sql = `SELECT * 
+            const orders_sql = `SELECT id, user_id, status, created
                 FROM orders
-                WHERE id=($1) AND NOT historic`;
+                WHERE user_id = ($1) AND status = ($2)
+                    AND NOT historic
+                ORDER BY created desc`;
+
+            const order_products_sql = `SELECT * FROM products_in_order($1)`;
             // @ts-ignore
             const conn = await Client.connect();
 
-            const result = await conn.query(sql, [id]);
+            let order_list: Order[] = [];
+
+            const result = await conn.query(orders_sql, [
+                user_id as unknown as string,
+                status,
+            ]);
+
+            if (!result.rows.length) {
+                conn.release();
+                return order_list;
+            } else {
+                order_list = result.rows;
+                console.log(order_list.length);
+                for (var order of order_list) {
+                    const result2 = await conn.query(order_products_sql, [
+                        order.id,
+                    ]);
+
+                    const op: OrderProduct[] = result2.rows;
+
+                    order.products = op;
+                }
+            }
 
             conn.release();
 
-            return result.rows[0];
+            return order_list;
         } catch (err) {
-            return ({
-                code: 'EO201',
-                error: `Could not find order ${id}. Error: ${err}`
-            }) as CodedError;
+            return {
+                code: 'EO102',
+                error: `Could not retrieve order. Error: ${err}`,
+            } as CodedError;
         }
     }
 
@@ -80,16 +151,41 @@ export class OrderStore {
 
             return order;
         } catch (err) {
-            return ({
-                code: 'EO301',
-                error: `Could not add new order ${o}. Error: ${err}`
-            }) as CodedError;
+            return {
+                code: 'EO201',
+                error: `Could not add new order ${o}. Error: ${err}`,
+            } as CodedError;
         }
     }
 
-    async addProduct(
-        op: OrderProduct
-    ): Promise<Order | CodedError> {
+    async getOrderUser(id: number): Promise<string | CodedError> {
+        try {
+            const order_sql = `SELECT user_id
+                FROM orders
+                WHERE id = ($1) AND NOT historic`;
+            // @ts-ignore
+            const conn = await Client.connect();
+
+            const result = await conn.query(order_sql, [id]);
+            conn.release();
+
+            if (result.rows.length) {
+                return result.rows[0].user_id;
+            } else {
+                return {
+                    code: 'EO301',
+                    error: `Order ${id} does not exist.`,
+                } as CodedError;
+            }
+        } catch (err) {
+            return {
+                code: 'EO302',
+                error: `Could not retrieve order ${id}. Error: ${err}`,
+            } as CodedError;
+        }
+    }
+
+    async addProduct(op: OrderProduct): Promise<Order | CodedError> {
         try {
             const order_sql = `SELECT * 
                 FROM orders
@@ -116,28 +212,28 @@ export class OrderStore {
                 const order = result.rows[0];
                 if (order.status !== 'Active') {
                     conn.release();
-                    return ({
+                    return {
                         code: 'EOP101',
                         error: `Could not add product ${op.product_id} to order ${op.order_id} 
-                            because order status is ${order.status}`
-                    }) as CodedError;
+                            because order status is ${order.status}`,
+                    } as CodedError;
                 }
             } else {
                 conn.release();
-                return ({
+                return {
                     code: 'EOP102',
-                    error: `Order ${op.order_id} is not valid.`
-                }) as CodedError;
+                    error: `Order ${op.order_id} is not valid.`,
+                } as CodedError;
             }
 
             result = await conn.query(product_sql, [op.product_id]);
 
             if (!result.rows.length) {
                 conn.release();
-                return ({
+                return {
                     code: 'EOP103',
-                    error: `Product ${op.product_id} is not valid.`
-                }) as CodedError;
+                    error: `Product ${op.product_id} is not valid.`,
+                } as CodedError;
             }
 
             result = await conn.query(exists_sql, [op.order_id, op.product_id]);
@@ -160,17 +256,15 @@ export class OrderStore {
 
             return order;
         } catch (err) {
-            return ({
+            return {
                 code: 'EOP104',
                 error: `Could not add product ${op.product_id} to order ${op.order_id}.
-                    Error: ${err}`
-            }) as CodedError;
+                    Error: ${err}`,
+            } as CodedError;
         }
     }
 
-    async showProducts(
-        orderId: number
-    ): Promise<OrderProduct[] | CodedError> {
+    async showProducts(orderId: number): Promise<OrderProduct[] | CodedError> {
         try {
             const order_product_sql = `SELECT op.order_id, p.name, op.quantity
                 FROM order_products op
@@ -186,66 +280,66 @@ export class OrderStore {
 
             return order;
         } catch (err) {
-            return ({
+            return {
                 code: 'EOP201',
                 error: `Could not get products from order ${orderId}.
-                Error: ${err}`
-            }) as CodedError;
+                Error: ${err}`,
+            } as CodedError;
         }
     }
 
     async reduceProduct(
         op: OrderProduct
-    ): Promise<OrderProduct | null | CodedError> {
-        
+    ): Promise<OrderProduct | undefined | CodedError> {
         try {
             const order_product_sql = `SELECT op.quantity
                 FROM order_products op
                 LEFT JOIN order o on o.id = op.order_id 
                 WHERE op.order_id=($1) AND op.product_id=($2)
                     AND NOT o.historic AND NOT op.historic`;
-            const remove_product_sql = ``
+            const remove_product_sql = ``;
             // @ts-ignore
             const conn = await Client.connect();
 
-            let result = await conn.query(order_product_sql, [op.order_id, op.product_id]);
+            let result = await conn.query(order_product_sql, [
+                op.order_id,
+                op.product_id,
+            ]);
 
             if (result.rows.length) {
                 if (op.quantity) {
                     const quantity: number = result.rows[0];
                     if (op.quantity > quantity) {
                         conn.release();
-                        return ({
+                        return {
                             code: 'EOP301',
                             error: `Unable to remove ${op.quantity} quantity
-                                from product ${op.product_id} in order ${op.order_id}.`
-                        }) as CodedError;
+                                from product ${op.product_id} in order ${op.order_id}.`,
+                        } as CodedError;
                     }
                 } else {
                     await this.removeProduct(op);
                     return;
                 }
-                
             } else {
                 conn.release();
-                return ({
+                return {
                     code: 'EOP302',
-                    error: `Unable to find product ${op.product_id} in order ${op.order_id}.`
-                }) as CodedError;
+                    error: `Unable to find product ${op.product_id} in order ${op.order_id}.`,
+                } as CodedError;
             }
         } catch (err) {
-            return ({
+            return {
                 code: 'EOP303',
                 error: `Could not remove product ${op.product_id} from order ${op.order_id}.
-                    Error: ${err}`
-            }) as CodedError;
+                    Error: ${err}`,
+            } as CodedError;
         }
     }
 
     async removeProduct(
         op: OrderProduct
-    ): Promise<null | CodedError> {
-        
+    ): Promise<null | CodedError | undefined> {
         try {
             const active_sql = `SELECT status='Active'
                 FROM order
@@ -266,40 +360,42 @@ export class OrderStore {
             let result = await conn.query(active_sql, [op.order_id]);
             if (result.rows.length) {
                 const status_active = result.rows[0];
-                result = await conn.query(exists_sql, [op.order_id, op.product_id]);
-                
+                result = await conn.query(exists_sql, [
+                    op.order_id,
+                    op.product_id,
+                ]);
+
                 let sql = historic_sql;
 
-                if (result.rows[0].exists) {    
+                if (result.rows[0].exists) {
                     // Only delete order_product record if order is active
                     if (status_active) {
                         sql = delete_sql;
                     }
                 } else {
                     conn.release();
-                    return ({
+                    return {
                         code: 'EOP401',
-                        error: `Unable to find product ${op.product_id} in order ${op.order_id}.`
-                    }) as CodedError;
+                        error: `Unable to find product ${op.product_id} in order ${op.order_id}.`,
+                    } as CodedError;
                 }
-                
+
                 result = await conn.query(sql, [op.order_id, op.product_id]);
 
                 return;
-
             } else {
                 conn.release();
-                return ({
+                return {
                     code: 'EOP402',
-                    error: `Unable to find order ${op.order_id}.`
-                }) as CodedError;
+                    error: `Unable to find order ${op.order_id}.`,
+                } as CodedError;
             }
         } catch (err) {
-            return ({
+            return {
                 code: 'EOP403',
                 error: `Could not remove product ${op.product_id} from order ${op.order_id}.
-                    Error: ${err}`
-            }) as CodedError;
+                    Error: ${err}`,
+            } as CodedError;
         }
     }
 
@@ -318,19 +414,17 @@ export class OrderStore {
             if (result.rows.length) {
                 const order = result.rows[0];
                 return order;
-            }
-            else {
-                return ({
+            } else {
+                return {
                     code: 'EO401',
-                    error: `Could not find order ${id}.`
-                }) as CodedError;
+                    error: `Could not find order ${id}.`,
+                } as CodedError;
             }
-
         } catch (err) {
-            return ({
+            return {
                 code: 'EO402',
-                error: `Could not delete order ${id}. Error: ${err}`
-            }) as CodedError;
+                error: `Could not delete order ${id}. Error: ${err}`,
+            } as CodedError;
         }
     }
 
@@ -350,10 +444,10 @@ export class OrderStore {
 
             return order;
         } catch (err) {
-            return ({
+            return {
                 code: 'EO501',
-                error: `Could not delete order ${id}. Error: ${err}`
-            }) as CodedError;
+                error: `Could not delete order ${id}. Error: ${err}`,
+            } as CodedError;
         }
     }
 }

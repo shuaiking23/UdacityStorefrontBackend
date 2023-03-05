@@ -1,0 +1,16 @@
+"use strict";
+exports.__esModule = true;
+exports.URL_PRODUCT = exports.URL_PRODUCTS = exports.URL_ORDERS = exports.URL_USERS_CREATE = exports.URL_USERS_SHOW = exports.URL_USERS_INDEX = exports.URL_USERS = exports.URL_BLANK = exports.URL_ID = exports.URL_CONTEXT = exports.FULLHOST = exports.PORT = exports.HOSTNAME = void 0;
+exports.HOSTNAME = '0.0.0.0';
+exports.PORT = '3000';
+exports.FULLHOST = "".concat(exports.HOSTNAME, ":").concat(exports.PORT);
+exports.URL_CONTEXT = '/api/v1';
+exports.URL_ID = '/:id';
+exports.URL_BLANK = '/';
+exports.URL_USERS = '/users';
+exports.URL_USERS_INDEX = exports.URL_CONTEXT + exports.URL_USERS;
+exports.URL_USERS_SHOW = exports.URL_CONTEXT + exports.URL_USERS + exports.URL_ID;
+exports.URL_USERS_CREATE = exports.URL_CONTEXT + exports.URL_USERS;
+exports.URL_ORDERS = '/orders';
+exports.URL_PRODUCTS = '/products';
+exports.URL_PRODUCT = '/product';

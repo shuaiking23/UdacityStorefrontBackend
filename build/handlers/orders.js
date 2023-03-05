@@ -44,58 +44,58 @@ var order_1 = require("../models/order");
 var common_1 = require("../utilities/common");
 var route = express_1["default"].Router();
 var store = new order_1.OrderStore();
+// Requirements
+/*
+RO1 Current Order by user (args: user id)[token required] - DONE
+RO2 [OPTIONAL] Completed Orders by user (args: user id)[token required] - DONE
+*/
+// Order Routes
+/*
+get '/current', showCurrent, token
+get '/completed', showByStatus(order_status.Complete), token
+get '/active', showByStatus(order_status.Active), token
+get '/:id', show, token - DISABLED
+post '/', create, token - DISABLED
+delete '/:id', destroy, token - DISABLED
+*/
 // Middleware to check order user
-var checkOrderUser = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var order;
+var order_user_check = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var user_id, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, store.show(parseInt(req.params.id))];
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, store.getOrderUser(parseInt(req.params.id))];
             case 1:
-                order = _a.sent();
-                if (order.error) {
-                    res.status(400).json(order);
+                user_id = _a.sent();
+                if (user_id.error) {
+                    res.status(400).json(user_id);
+                    return [2 /*return*/];
                 }
-                else if (res.locals.userid !== order.user_id) {
+                ;
+                if (user_id != res.locals.userid) {
                     res.status(403).json(({
-                        code: 'EO301',
-                        error: 'User does not match!'
+                        code: 'EOH101',
+                        error: "You have no access to this order"
                     }));
                     return [2 /*return*/];
                 }
+                return [3 /*break*/, 3];
+            case 2:
+                err_1 = _a.sent();
+                return [3 /*break*/, 3];
+            case 3:
                 next();
                 return [2 /*return*/];
         }
     });
 }); };
-// Order Routes
-/*
-get '/', index
-get '/:id', show
-post '/', create
-delete '/:id', destroy
-*/
-var index = function (_req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var orders;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, store.index()];
-            case 1:
-                orders = _a.sent();
-                if (orders.error) {
-                    res.status(400);
-                }
-                ;
-                res.json(orders);
-                return [2 /*return*/];
-        }
-    });
-}); };
-route.get('/', index);
-var show = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+// Returns the most recent active order
+var showCurrent = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var order;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, store.show(parseInt(req.params.id))];
+            case 0: return [4 /*yield*/, store.show(parseInt(res.locals.userid), null)];
             case 1:
                 order = _a.sent();
                 if (order.error) {
@@ -106,72 +106,73 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
         }
     });
 }); };
-route.get('/:id', show);
+// RO1 Current Order by user (args: user id)[token required]
+route.get('/current', (0, common_1.token_check)(null), showCurrent);
+var showByStatus = function (status) {
+    return function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+        var order;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, store.showByStatus(parseInt(res.locals.userid), status)];
+                case 1:
+                    order = _a.sent();
+                    if (order.error) {
+                        res.status(400);
+                    }
+                    res.json({
+                        'record_count': order.length,
+                        order: order
+                    });
+                    return [2 /*return*/];
+            }
+        });
+    }); };
+};
+// RO2 [OPTIONAL] Completed Orders by user (args: user id)[token required]
+route.get('/completed', (0, common_1.token_check)(null), showByStatus(order_1.order_status.Complete));
+route.get('/active', (0, common_1.token_check)(null), showByStatus(order_1.order_status.Active));
+var show = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var order;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, store.show(null, parseInt(req.params.id))];
+            case 1:
+                order = _a.sent();
+                if (order.error) {
+                    if (order.code == 'EOPH101') {
+                        res.status(403);
+                    }
+                    else {
+                        res.status(400);
+                    }
+                    res.json(order);
+                    return [2 /*return*/];
+                }
+                res.json(order);
+                return [2 /*return*/];
+        }
+    });
+}); };
+//route.get(cfg.URL_ID, token_check(null), order_user_check, show);
 var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var order, newOrder, err_1;
+    var order, newOrder, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 order = {
-                    user_id: req.body.userid,
+                    user_id: res.locals.userid,
                     status: order_1.order_status.Active
                 };
                 return [4 /*yield*/, store.create(order)];
             case 1:
                 newOrder = _a.sent();
                 if (newOrder.error) {
-                    res.status(400);
+                    res.status(400).json(newOrder);
+                    return [2 /*return*/];
                 }
                 ;
                 res.json(newOrder);
-                return [3 /*break*/, 3];
-            case 2:
-                err_1 = _a.sent();
-                res.status(400).json(err_1);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-route.post('/', (0, common_1.token_check)(null), create);
-var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var deleted;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, store["delete"](req.body.orderid)];
-            case 1:
-                deleted = _a.sent();
-                if (deleted.error) {
-                    res.status(400);
-                }
-                ;
-                res.json(deleted);
-                return [2 /*return*/];
-        }
-    });
-}); };
-route["delete"]('/:id', (0, common_1.token_check)(null), checkOrderUser, destroy);
-// Order Product Routes
-/*
-post '/:id/products', showProducts
-post '/:id/product/add', addProduct
-post '/:id/product/reduce', reduceProduct
-*/
-var showProducts = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var orderProducts, err_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, store.showProducts(parseInt(req.params.id))];
-            case 1:
-                orderProducts = _a.sent();
-                if (orderProducts.error) {
-                    res.status(400);
-                }
-                ;
-                res.json(orderProducts);
                 return [3 /*break*/, 3];
             case 2:
                 err_2 = _a.sent();
@@ -181,9 +182,58 @@ var showProducts = function (req, res) { return __awaiter(void 0, void 0, void 0
         }
     });
 }); };
-route.post('/:id/products', (0, common_1.token_check)(null), checkOrderUser, showProducts);
+// route.post(cfg.URL_BLANK, token_check(null), create);
+var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var deleted;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, store["delete"](req.body.orderid)];
+            case 1:
+                deleted = _a.sent();
+                if (deleted.error) {
+                    res.status(400).json(deleted);
+                    return [2 /*return*/];
+                }
+                ;
+                res.json(deleted);
+                return [2 /*return*/];
+        }
+    });
+}); };
+// route.delete('/:id', token_check(null), order_user_check, destroy);
+// Order Product Routes
+/*
+post '/:id/products', showProducts - Disabled
+post '/:id/product/add', addProduct - Disabled
+post '/:id/product/reduce', reduceProduct - Disabled
+*/
+var showProducts = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var orderProducts, err_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, store.showProducts(parseInt(req.params.id))];
+            case 1:
+                orderProducts = _a.sent();
+                if (orderProducts.error) {
+                    res.status(400).json(orderProducts);
+                    return [2 /*return*/];
+                }
+                ;
+                res.json(orderProducts);
+                return [3 /*break*/, 3];
+            case 2:
+                err_3 = _a.sent();
+                res.status(400).json(err_3);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+// route.post(cfg.URL_ID + cfg.URL_PRODUCT, token_check(null), order_user_check, showProducts);
 var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var op, addedProduct, err_3;
+    var op, addedProduct, err_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -199,22 +249,22 @@ var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, 
             case 2:
                 addedProduct = _a.sent();
                 if (addedProduct.error) {
-                    res.status(400);
+                    res.status(400).json(addedProduct);
                 }
                 ;
                 res.json(addedProduct);
                 return [3 /*break*/, 4];
             case 3:
-                err_3 = _a.sent();
-                res.status(400).json(err_3);
+                err_4 = _a.sent();
+                res.status(400).json(err_4);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
     });
 }); };
-route.post('/:id/product/add', (0, common_1.token_check)(null), checkOrderUser, addProduct);
+// route.post(`${cfg.URL_ID}${cfg.URL_PRODUCT}/add`, token_check(null), order_user_check, addProduct);
 var reduceProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var op, reduceProduct_1, err_4;
+    var op, reduceProduct_1, err_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -236,12 +286,12 @@ var reduceProduct = function (req, res) { return __awaiter(void 0, void 0, void 
                 res.json(reduceProduct_1);
                 return [3 /*break*/, 4];
             case 3:
-                err_4 = _a.sent();
-                res.status(400).json(err_4);
+                err_5 = _a.sent();
+                res.status(400).json(err_5);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
     });
 }); };
-route.post('/:id/product/reduce', (0, common_1.token_check)(null), checkOrderUser, reduceProduct);
+// route.post(`${cfg.URL_ID}${cfg.URL_PRODUCT}/reduce`, token_check(null), order_user_check, reduceProduct);
 exports["default"] = route;

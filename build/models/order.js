@@ -50,56 +50,114 @@ var order_status;
 var OrderStore = /** @class */ (function () {
     function OrderStore() {
     }
-    OrderStore.prototype.index = function () {
+    OrderStore.prototype.show = function (user_id, order_id) {
         return __awaiter(this, void 0, void 0, function () {
-            var conn, sql, result, err_1;
+            var order_sql, order_products_sql, conn, result, o, op, order, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 3, , 4]);
+                        _a.trys.push([0, 4, , 5]);
+                        if (user_id === null && order_id === null) {
+                            return [2 /*return*/, ({
+                                    code: 'EOP101',
+                                    error: 'Either user or order must be provided.'
+                                })];
+                        }
+                        ;
+                        order_sql = "SELECT id, user_id, status, created\n                FROM orders\n                WHERE (\n                    (($1)::integer NOTNULL AND user_id = ($1) AND status = 'Active')\n                        OR id = ($2))\n                    AND NOT historic\n                ORDER BY created desc\n                LIMIT 1";
+                        order_products_sql = "SELECT * FROM products_in_order($1)";
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
-                        sql = "SELECT id, user_id, status, created, \n                    created, last_update\n                FROM orders\n                WHERE NOT historic";
-                        return [4 /*yield*/, conn.query(sql)];
+                        return [4 /*yield*/, conn.query(order_sql, [
+                                user_id,
+                                order_id
+                            ])];
                     case 2:
                         result = _a.sent();
-                        conn.release();
-                        return [2 /*return*/, result.rows];
+                        if (!result.rows.length) {
+                            conn.release();
+                            return [2 /*return*/, ({
+                                    code: 'EOP101',
+                                    error: "Order does not exist."
+                                })];
+                        }
+                        ;
+                        o = result.rows[0];
+                        return [4 /*yield*/, conn.query(order_products_sql, [o.id])];
                     case 3:
+                        result = _a.sent();
+                        conn.release();
+                        op = result.rows;
+                        order = {
+                            id: o.id,
+                            user_id: o.user_id,
+                            status: o.status,
+                            created: o.created,
+                            products: op
+                        };
+                        return [2 /*return*/, order];
+                    case 4:
                         err_1 = _a.sent();
                         return [2 /*return*/, ({
-                                code: 'EO101',
-                                error: "Could not get orders. Error: ".concat(err_1)
+                                code: 'EO102',
+                                error: "Could not retrieve order. Error: ".concat(err_1)
                             })];
-                    case 4: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
     };
-    OrderStore.prototype.show = function (id) {
+    OrderStore.prototype.showByStatus = function (user_id, status) {
         return __awaiter(this, void 0, void 0, function () {
-            var sql, conn, result, err_2;
+            var orders_sql, order_products_sql, conn, order_list, result, _i, order_list_1, order, result2, op, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        sql = "SELECT * \n                FROM orders\n                WHERE id=($1) AND NOT historic";
+                        _a.trys.push([0, 8, , 9]);
+                        orders_sql = "SELECT id, user_id, status, created\n                FROM orders\n                WHERE user_id = ($1) AND status = ($2)\n                    AND NOT historic\n                ORDER BY created desc";
+                        order_products_sql = "SELECT * FROM products_in_order($1)";
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();
-                        return [4 /*yield*/, conn.query(sql, [id])];
+                        order_list = [];
+                        return [4 /*yield*/, conn.query(orders_sql, [
+                                user_id,
+                                status
+                            ])];
                     case 2:
                         result = _a.sent();
+                        if (!!result.rows.length) return [3 /*break*/, 3];
                         conn.release();
-                        return [2 /*return*/, result.rows[0]];
+                        return [2 /*return*/, order_list];
                     case 3:
+                        order_list = result.rows;
+                        console.log(order_list.length);
+                        _i = 0, order_list_1 = order_list;
+                        _a.label = 4;
+                    case 4:
+                        if (!(_i < order_list_1.length)) return [3 /*break*/, 7];
+                        order = order_list_1[_i];
+                        return [4 /*yield*/, conn.query(order_products_sql, [order.id])];
+                    case 5:
+                        result2 = _a.sent();
+                        op = result2.rows;
+                        order.products = op;
+                        _a.label = 6;
+                    case 6:
+                        _i++;
+                        return [3 /*break*/, 4];
+                    case 7:
+                        ;
+                        conn.release();
+                        return [2 /*return*/, order_list];
+                    case 8:
                         err_2 = _a.sent();
                         return [2 /*return*/, ({
-                                code: 'EO201',
-                                error: "Could not find order ".concat(id, ". Error: ").concat(err_2)
+                                code: 'EO102',
+                                error: "Could not retrieve order. Error: ".concat(err_2)
                             })];
-                    case 4: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -124,8 +182,44 @@ var OrderStore = /** @class */ (function () {
                     case 3:
                         err_3 = _a.sent();
                         return [2 /*return*/, ({
-                                code: 'EO301',
+                                code: 'EO201',
                                 error: "Could not add new order ".concat(o, ". Error: ").concat(err_3)
+                            })];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    OrderStore.prototype.getOrderUser = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            var order_sql, conn, result, err_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        order_sql = "SELECT user_id\n                FROM orders\n                WHERE id = ($1) AND NOT historic";
+                        return [4 /*yield*/, database_1["default"].connect()];
+                    case 1:
+                        conn = _a.sent();
+                        return [4 /*yield*/, conn.query(order_sql, [id])];
+                    case 2:
+                        result = _a.sent();
+                        conn.release();
+                        if (result.rows.length) {
+                            return [2 /*return*/, result.rows[0].user_id];
+                        }
+                        else {
+                            return [2 /*return*/, ({
+                                    code: 'EO301',
+                                    error: "Order ".concat(id, " does not exist.")
+                                })];
+                        }
+                        return [3 /*break*/, 4];
+                    case 3:
+                        err_4 = _a.sent();
+                        return [2 /*return*/, ({
+                                code: 'EO302',
+                                error: "Could not retrieve order ".concat(id, ". Error: ").concat(err_4)
                             })];
                     case 4: return [2 /*return*/];
                 }
@@ -134,7 +228,7 @@ var OrderStore = /** @class */ (function () {
     };
     OrderStore.prototype.addProduct = function (op) {
         return __awaiter(this, void 0, void 0, function () {
-            var order_sql, product_sql, exists_sql, insert_sql, update_sql, conn, result, order_1, exists, sql, order, err_4;
+            var order_sql, product_sql, exists_sql, insert_sql, update_sql, conn, result, order_1, exists, sql, order, err_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -196,10 +290,10 @@ var OrderStore = /** @class */ (function () {
                         conn.release();
                         return [2 /*return*/, order];
                     case 6:
-                        err_4 = _a.sent();
+                        err_5 = _a.sent();
                         return [2 /*return*/, ({
                                 code: 'EOP104',
-                                error: "Could not add product ".concat(op.product_id, " to order ").concat(op.order_id, ".\n                    Error: ").concat(err_4)
+                                error: "Could not add product ".concat(op.product_id, " to order ").concat(op.order_id, ".\n                    Error: ").concat(err_5)
                             })];
                     case 7: return [2 /*return*/];
                 }
@@ -208,7 +302,7 @@ var OrderStore = /** @class */ (function () {
     };
     OrderStore.prototype.showProducts = function (orderId) {
         return __awaiter(this, void 0, void 0, function () {
-            var order_product_sql, conn, result, order, err_5;
+            var order_product_sql, conn, result, order, err_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -223,10 +317,10 @@ var OrderStore = /** @class */ (function () {
                         order = result.rows;
                         return [2 /*return*/, order];
                     case 3:
-                        err_5 = _a.sent();
+                        err_6 = _a.sent();
                         return [2 /*return*/, ({
                                 code: 'EOP201',
-                                error: "Could not get products from order ".concat(orderId, ".\n                Error: ").concat(err_5)
+                                error: "Could not get products from order ".concat(orderId, ".\n                Error: ").concat(err_6)
                             })];
                     case 4: return [2 /*return*/];
                 }
@@ -235,7 +329,7 @@ var OrderStore = /** @class */ (function () {
     };
     OrderStore.prototype.reduceProduct = function (op) {
         return __awaiter(this, void 0, void 0, function () {
-            var order_product_sql, remove_product_sql, conn, result, quantity, err_6;
+            var order_product_sql, remove_product_sql, conn, result, quantity, err_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -272,10 +366,10 @@ var OrderStore = /** @class */ (function () {
                             })];
                     case 7: return [3 /*break*/, 9];
                     case 8:
-                        err_6 = _a.sent();
+                        err_7 = _a.sent();
                         return [2 /*return*/, ({
                                 code: 'EOP303',
-                                error: "Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                    Error: ").concat(err_6)
+                                error: "Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                    Error: ").concat(err_7)
                             })];
                     case 9: return [2 /*return*/];
                 }
@@ -284,7 +378,7 @@ var OrderStore = /** @class */ (function () {
     };
     OrderStore.prototype.removeProduct = function (op) {
         return __awaiter(this, void 0, void 0, function () {
-            var active_sql, exists_sql, delete_sql, historic_sql, conn, result, status_active, sql, err_7;
+            var active_sql, exists_sql, delete_sql, historic_sql, conn, result, status_active, sql, err_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -330,10 +424,10 @@ var OrderStore = /** @class */ (function () {
                             })];
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        err_7 = _a.sent();
+                        err_8 = _a.sent();
                         return [2 /*return*/, ({
                                 code: 'EOP403',
-                                error: "Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                    Error: ").concat(err_7)
+                                error: "Could not remove product ".concat(op.product_id, " from order ").concat(op.order_id, ".\n                    Error: ").concat(err_8)
                             })];
                     case 8: return [2 /*return*/];
                 }
@@ -342,7 +436,7 @@ var OrderStore = /** @class */ (function () {
     };
     OrderStore.prototype.complete = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var sql, conn, result, order, err_8;
+            var sql, conn, result, order, err_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -367,10 +461,10 @@ var OrderStore = /** @class */ (function () {
                         }
                         return [3 /*break*/, 4];
                     case 3:
-                        err_8 = _a.sent();
+                        err_9 = _a.sent();
                         return [2 /*return*/, ({
                                 code: 'EO402',
-                                error: "Could not delete order ".concat(id, ". Error: ").concat(err_8)
+                                error: "Could not delete order ".concat(id, ". Error: ").concat(err_9)
                             })];
                     case 4: return [2 /*return*/];
                 }
@@ -379,7 +473,7 @@ var OrderStore = /** @class */ (function () {
     };
     OrderStore.prototype["delete"] = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var sql, conn, result, order, err_9;
+            var sql, conn, result, order, err_10;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -395,10 +489,10 @@ var OrderStore = /** @class */ (function () {
                         conn.release();
                         return [2 /*return*/, order];
                     case 3:
-                        err_9 = _a.sent();
+                        err_10 = _a.sent();
                         return [2 /*return*/, ({
                                 code: 'EO501',
-                                error: "Could not delete order ".concat(id, ". Error: ").concat(err_9)
+                                error: "Could not delete order ".concat(id, ". Error: ").concat(err_10)
                             })];
                     case 4: return [2 /*return*/];
                 }

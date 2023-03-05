@@ -3,12 +3,24 @@ import { Pool } from 'pg';
 
 dotenv.config();
 
-const { POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD } =
-    process.env;
+const {
+    POSTGRES_HOST,
+    POSTGRES_DB,
+    POSTGRES_DB_TEST,
+    POSTGRES_USER,
+    POSTGRES_PASSWORD,
+    ENV,
+} = process.env;
+
+let target_DB = POSTGRES_DB;
+
+if (ENV == 'test') {
+    target_DB = POSTGRES_DB_TEST;
+}
 
 const Client = new Pool({
     host: POSTGRES_HOST,
-    database: POSTGRES_DB,
+    database: target_DB,
     user: POSTGRES_USER,
     password: POSTGRES_PASSWORD,
 });

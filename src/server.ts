@@ -5,18 +5,20 @@ import cors from 'cors';
 import orderRoutes from './handlers/orders';
 import productRoutes from './handlers/products';
 import userRoutes from './handlers/users';
+import * as cfg from './utilities/appConfigs';
 
 const app: express.Application = express();
 const routes = express.Router();
-const address: string = '0.0.0.0:3000';
+const address: string = cfg.FULLHOST;
 
+app.use(cors());
 app.use(bodyParser.json());
-app.use(multer().array())
+app.use(multer().array());
 //app.use(express.urlencoded({ extended: true }));
-app.use('/api/v1', routes);
+app.use(cfg.URL_CONTEXT, routes);
 
 app.get('*', function (req, res) {
-  res.status(404).send('Page Not Found!');
+    res.status(404).send('Page Not Found!');
 });
 
 routes.get('/', (req: Request, res: Response) => {
@@ -30,3 +32,5 @@ routes.use('/orders', orderRoutes);
 app.listen(3000, () => {
     console.log(`starting app on: ${address}`);
 });
+
+export default app;

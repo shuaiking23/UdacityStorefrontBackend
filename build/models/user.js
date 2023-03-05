@@ -172,7 +172,7 @@ var UserStore = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        sql = "SELECT username, password\n                FROM users\n                WHERE username = ($1) AND NOT historic";
+                        sql = "SELECT id, username, password\n                FROM users\n                WHERE username = ($1) AND NOT historic";
                         return [4 /*yield*/, database_1["default"].connect()];
                     case 1:
                         conn = _a.sent();

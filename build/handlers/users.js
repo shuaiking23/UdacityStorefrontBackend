@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -44,15 +67,22 @@ var user_1 = require("../models/user");
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var dotenv_1 = __importDefault(require("dotenv"));
 var common_1 = require("../utilities/common");
+var cfg = __importStar(require("../utilities/appConfigs"));
 var route = express_1["default"].Router();
 dotenv_1["default"].config();
 var store = new user_1.UserStore();
+// Requirements
+/*
+RU1 Index [token required] - DONE
+RU2 Show [token required] - DONE
+RU3 Create N[token required] - DONE
+*/
 // User Routes
 /*
-get '/', index
-get '/:id', show
-post '/', create
-delete '/:id', destroy
+get '/', index, token
+get '/:id', show, token
+post '/', create, token
+delete '/:id', destroy, token - DISABLED
 post '/authenticate', authenticate
 */
 var index = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -78,7 +108,41 @@ var index = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
         }
     });
 }); };
-route.get('/', (0, common_1.token_check)(null), index);
+// RU1 Index [token required]
+route.get(cfg.URL_BLANK, (0, common_1.token_check)(null), index);
+var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var username, password, u, token, err_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                username = req.body.username;
+                password = req.body.password;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, store.authenticate(username, password)];
+            case 2:
+                u = _a.sent();
+                if (u.error) {
+                    res.status(401).json(u);
+                    return [2 /*return*/];
+                }
+                else {
+                    token = jsonwebtoken_1["default"].sign({ id: u.id, user: u.username }, process.env.TOKEN_SECRET);
+                    res.json({
+                        'token': token
+                    });
+                }
+                return [3 /*break*/, 4];
+            case 3:
+                err_2 = _a.sent();
+                res.status(401).json({ err: err_2 });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+route.post('/authenticate', authenticate);
 var show = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var user;
     return __generator(this, function (_a) {
@@ -95,9 +159,10 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
         }
     });
 }); };
-route.get('/:id', (0, common_1.token_check)(0), show);
+// RU2 Show [token required]
+route.get(cfg.URL_ID, (0, common_1.token_check)(0), show);
 var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user, newUser, token, err_2;
+    var user, newUser, token, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -122,14 +187,15 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 res.json(token);
                 return [3 /*break*/, 4];
             case 3:
-                err_2 = _a.sent();
-                res.status(400).json(err_2 + user);
+                err_3 = _a.sent();
+                res.status(400).json(err_3 + user);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
     });
 }); };
-route.post('/', (0, common_1.token_check)(null), create);
+// RU3 Create N[token required]
+route.post(cfg.URL_BLANK, (0, common_1.token_check)(null), create);
 var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var deleted;
     return __generator(this, function (_a) {
@@ -146,38 +212,5 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
         }
     });
 }); };
-route["delete"]('/:id', destroy);
-var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var username, password, u, token, err_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                username = req.body.username;
-                password = req.body.password;
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, store.authenticate(username, password)];
-            case 2:
-                u = _a.sent();
-                if (u.error) {
-                    res.status(401).json(u);
-                    return [2 /*return*/];
-                }
-                else {
-                    token = jsonwebtoken_1["default"].sign({ user: u.username }, process.env.TOKEN_SECRET);
-                    res.json({
-                        'token': token
-                    });
-                }
-                return [3 /*break*/, 4];
-            case 3:
-                err_3 = _a.sent();
-                res.status(401).json({ err: err_3 });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); };
-route.post('/authenticate', authenticate);
+// route.delete('/:id', token_check(null), destroy);
 exports["default"] = route;

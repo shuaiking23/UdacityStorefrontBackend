@@ -6,8 +6,8 @@ import { CodedError } from '../utilities/common';
 
 dotenv.config();
 
-const pepper: string = process.env.BCRYPT_PASSWORD;
-const saltRounds: number = parseInt(process.env.SALT_ROUNDS);
+const pepper: string = process.env.BCRYPT_PASSWORD as unknown as string;
+const saltRounds: number = parseInt(process.env.SALT_ROUNDS as unknown as string);
 
 export type User = {
     id?: number;
@@ -32,16 +32,16 @@ export class UserStore {
 
             return result.rows;
         } catch (err) {
-            return ({
+            return {
                 code: 'EU101',
-                error: `Could not get users. Error: ${err}`
-            }) as CodedError;
+                error: `Could not get users. Error: ${err}`,
+            } as CodedError;
         }
     }
 
     async show(id: number): Promise<User | CodedError> {
         try {
-            const sql = `SELECT * 
+            const sql = `SELECT id, firstname, lastname, username
                 FROM users
                 WHERE id=($1) AND NOT historic`;
             // @ts-ignore
@@ -53,10 +53,10 @@ export class UserStore {
 
             return result.rows[0];
         } catch (err) {
-            return ({
+            return {
                 code: 'EU201',
-                error: `Could not find user ${id}. Error: ${err}`
-            }) as CodedError;
+                error: `Could not find user ${id}. Error: ${err}`,
+            } as CodedError;
         }
     }
 
@@ -64,7 +64,8 @@ export class UserStore {
         try {
             const sql = `INSERT INTO users (
                     firstname, lastname, username, password)
-                VALUES($1, $2, $3) RETURNING *`;
+                VALUES($1, $2, $3, $4)
+                RETURNING id, firstname, lastname, username`;
             const hash: string = bcrypt.hashSync(
                 u.password + pepper,
                 saltRounds
@@ -76,6 +77,7 @@ export class UserStore {
             const result = await conn.query(sql, [
                 u.firstname,
                 u.lastname,
+                u.username,
                 hash,
             ]);
 
@@ -85,10 +87,10 @@ export class UserStore {
 
             return user;
         } catch (err) {
-            return ({
+            return {
                 code: 'EU301',
-                error: `Could not add new user ${name}. Error: ${err}`
-            }) as CodedError;
+                error: `Could not add new user ${u.firstname} ${u.lastname}. Error: ${err}`,
+            } as CodedError;
         }
     }
 
@@ -108,10 +110,10 @@ export class UserStore {
 
             return user;
         } catch (err) {
-            return ({
+            return {
                 code: 'EU401',
-                error: `Could not delete user ${id}. Error: ${err}`
-            }) as CodedError;
+                error: `Could not delete user ${id}. Error: ${err}`,
+            } as CodedError;
         }
     }
 
@@ -120,7 +122,7 @@ export class UserStore {
         password: string
     ): Promise<User | CodedError> {
         try {
-            const sql = `SELECT username, password
+            const sql = `SELECT id, username, password
                 FROM users
                 WHERE username = ($1) AND NOT historic`;
             // @ts-ignore
@@ -136,23 +138,23 @@ export class UserStore {
                 if (bcrypt.compareSync(password + pepper, user.password)) {
                     return user;
                 } else {
-                    return ({
+                    return {
                         code: 'EU501',
-                        error: 'Incorrect username/password.'
-                    }) as CodedError;
+                        error: 'Incorrect username/password.',
+                    } as CodedError;
                 }
             } else {
-                return ({
+                return {
                     code: 'EU502',
-                    error: 'Incorrect username/password.'
-                }) as CodedError;
+                    error: 'Incorrect username/password.',
+                } as CodedError;
             }
         } catch (err) {
             console.log(err);
-            return ({
+            return {
                 code: 'EU503',
-                error: `Unable to authenticate user ${username}. Error: ${err}`
-            }) as CodedError;
+                error: `Unable to authenticate user ${username}. Error: ${err}`,
+            } as CodedError;
         }
     }
 }

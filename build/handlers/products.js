@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -41,14 +64,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 exports.__esModule = true;
 var express_1 = __importDefault(require("express"));
 var product_1 = require("../models/product");
+var common_1 = require("../utilities/common");
+var cfg = __importStar(require("../utilities/appConfigs"));
 var route = express_1["default"].Router();
 var store = new product_1.ProductStore();
+// Requirements
+/*
+RP01 Index - DONE
+RP02 Show - DONE
+RP03 Create [token required] - DONE
+RP04 [OPTIONAL] Top 5 most popular products - DONE
+RP05 [OPTIONAL] Products by category (args: product category) - DONE
+*/
 // Product Routes
 /*
-get '/', index
-get '/:id', show
-post '/', create
-delete '/:id', destroy
+get '/', index, public
+get '/:id', show, public
+post '/', create, token
+delete '/:id', destroy, token - DISABLED
+get '/top5', top5, public
 */
 var index = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var category, products;
@@ -71,7 +105,9 @@ var index = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
         }
     });
 }); };
-route.get('/', index);
+// RP01 Index
+// RP05 [OPTIONAL] Products by category (args: product category)
+route.get(cfg.URL_BLANK, index);
 var show = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var product;
     return __generator(this, function (_a) {
@@ -88,7 +124,8 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
         }
     });
 }); };
-route.get('/:id', show);
+// RP02 Show
+route.get(cfg.URL_ID, show);
 var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var product, newProduct, err_1;
     return __generator(this, function (_a) {
@@ -117,7 +154,8 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
         }
     });
 }); };
-route.post('/', create);
+// RP03 Create [token required]
+route.post(cfg.URL_BLANK, (0, common_1.token_check)(null), create);
 var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var deleted;
     return __generator(this, function (_a) {
@@ -134,5 +172,23 @@ var destroy = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
         }
     });
 }); };
-route["delete"]('/:id', destroy);
+// route.delete('/:id', token_check(null), destroy);
+var top5 = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var topProducts;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, store.top5()];
+            case 1:
+                topProducts = _a.sent();
+                if (topProducts.error) {
+                    res.status(400);
+                }
+                ;
+                res.json(topProducts);
+                return [2 /*return*/];
+        }
+    });
+}); };
+// RP04 [OPTIONAL] Top 5 most popular products
+route.get('/top5', top5);
 exports["default"] = route;
