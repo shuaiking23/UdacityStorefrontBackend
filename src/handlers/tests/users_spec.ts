@@ -1,5 +1,5 @@
 import supertest from 'supertest';
-import { Product, ProductStore } from '../../models/user';
+import { User, UserStore } from '../../models/user';
 import route from '../users';
 import { CodedError } from '../../utilities/common';
 
