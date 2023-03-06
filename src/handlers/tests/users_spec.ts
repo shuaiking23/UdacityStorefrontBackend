@@ -1,4 +1,12 @@
-import * as cfg from '../../utilities/appConfigs';
-//import app from '../../server';
+import supertest from 'supertest';
+import { Product, ProductStore } from '../../models/user';
+import route from '../users';
+import { CodedError } from '../../utilities/common';
 
-const request = require('supertest');
+const request = supertest(route);
+
+describe('User Handler', () => {
+    it('sample test', async () => {
+    	expect(1).toBe(1);
+    });
+});
