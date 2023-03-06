@@ -10,7 +10,7 @@ fdescribe('Order Handler', () => {
     it('GET / sanity test', async () => {
         try {
             console.log('starto');
-            const result = await request.get('/orders/current');
+            const result = await request.get('/orders');
             console.log(result);
             expect(result.statusCode).toEqual(200);
         } catch (err) {
