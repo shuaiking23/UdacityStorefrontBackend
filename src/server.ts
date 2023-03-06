@@ -7,8 +7,8 @@ import productRoutes from './handlers/products';
 import userRoutes from './handlers/users';
 import * as cfg from './utilities/appConfigs';
 
-const app: express.Application = express();
-const routes = express.Router();
+export const app: express.Application = express();
+export const routes = express.Router();
 const address: string = cfg.FULLHOST;
 
 app.use(cors());
@@ -33,5 +33,3 @@ routes.use('/orders', orderRoutes);
 app.listen(3000, () => {
     console.log(`starting app on: ${address}`);
 });
-
-export default app;

@@ -1,16 +1,15 @@
 import supertest from 'supertest';
-import * as cfg from '../../utilities/appConfigs';
-import { routes } from '../../server';
-import { Order, OrderStore, order_status } from '../../models/order';
-import { CodedError } from '../../utilities/common';
+import * as cfg from '../utilities/appConfigs';
+import { app } from '../server';
+import { CodedError } from '../utilities/common';
 
-const request = supertest(routes);
+const request = supertest(app);
 
 fdescribe('Order Handler', () => {
     it('GET / sanity test', async () => {
         try {
             console.log('starto');
-            const result = await request.get('/orders/current');
+            const result = await request.get('/api/vi');
             console.log(result);
             expect(result.statusCode).toEqual(200);
         } catch (err) {
