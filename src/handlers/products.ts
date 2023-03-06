@@ -26,13 +26,10 @@ get '/top5', top5, public
 
 const index = async (req: Request, res: Response) => {
     // Optionally allow filter by category
-    console.log(req);
     var category: string | null = req.query.category as string;
     if (!category) {
         category = null;
     }
-    console.log('here');
-    console.log(category);
 
     const products = await store.index(category);
     if ((products as CodedError).error) {
