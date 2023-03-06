@@ -27,7 +27,9 @@ describe('Order Model', () => {
                 await conn.query(`SELECT clear_sample_products()`);
 
                 await conn.query(`SELECT create_sample_products(${p_count})`);
-                await conn.query(`SELECT create_sample_orders(1,${o_count},10)`);
+                await conn.query(
+                    `SELECT create_sample_orders(1,${o_count},10)`
+                );
 
                 const p_result = await conn.query(
                     `SELECT count(1) AS num FROM products WHERE NOT HISTORIC`

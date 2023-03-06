@@ -49,8 +49,6 @@ describe('Product Model', () => {
                 console.log(err);
                 expect(err).toBe('');
             }
-            
-
         });
 
         it(`RP2 show method should return a Product
@@ -156,16 +154,20 @@ describe('Product Model', () => {
                 const p_result = await conn.query(sql);
 
                 conn.release();
-                
+
                 expect(p_result.rows.length).toBe(5);
 
                 const result = await store.topN(5);
-                
+
                 expect((result as Product[]).length).toBe(5);
 
                 for (let i = 0; i < 5; i++) {
-                    expect((result as Product[])[i].id).toBe(p_result.rows[i].id);
-                    expect((result as Product[])[i].order_sum).toBe(p_result.rows[i].order_sum);
+                    expect((result as Product[])[i].id).toBe(
+                        p_result.rows[i].id
+                    );
+                    expect((result as Product[])[i].order_sum).toBe(
+                        p_result.rows[i].order_sum
+                    );
                 }
             } catch (err) {
                 console.log(err);
@@ -227,4 +229,3 @@ describe('Product Model', () => {
         });
     });
 });
-

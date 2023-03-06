@@ -7,7 +7,9 @@ import { CodedError } from '../utilities/common';
 dotenv.config();
 
 const pepper: string = process.env.BCRYPT_PASSWORD as unknown as string;
-const saltRounds: number = parseInt(process.env.SALT_ROUNDS as unknown as string);
+const saltRounds: number = parseInt(
+    process.env.SALT_ROUNDS as unknown as string
+);
 
 export type User = {
     id?: number;

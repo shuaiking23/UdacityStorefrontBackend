@@ -23,7 +23,11 @@ delete '/:id', destroy, token - DISABLED
 */
 
 // Middleware to check order user
-const orderUserCheck = async (req: Request, res: Response, next: NextFunction) => {
+const orderUserCheck = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
     console.log('orderCheck');
     try {
         const user_id = await store.getOrderUser(parseInt(req.params.id));

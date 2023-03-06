@@ -7,7 +7,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const pepper: string = process.env.BCRYPT_PASSWORD as unknown as string;
-const saltRounds: number = parseInt(process.env.SALT_ROUNDS as unknown as string);
+const saltRounds: number = parseInt(
+    process.env.SALT_ROUNDS as unknown as string
+);
 
 const store = new UserStore();
 
@@ -77,7 +79,6 @@ describe('User Model', () => {
                 console.log(err);
                 expect(err).toBe('');
             }
-
         });
 
         it(`RU3 create method should

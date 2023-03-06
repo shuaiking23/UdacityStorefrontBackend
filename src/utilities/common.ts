@@ -8,8 +8,8 @@ export type CodedError = {
 };
 
 interface JwtPayload {
-    id: number,
-    user: string
+    id: number;
+    user: string;
 }
 
 export const tokenCheck = (user_id: number | null) => {
@@ -22,7 +22,10 @@ export const tokenCheck = (user_id: number | null) => {
             const bearerHeader = req.headers.authorization;
             if (typeof bearerHeader !== 'undefined') {
                 const token = bearerHeader.split(' ')[1];
-                const decoded = jwt.verify(token, process.env.TOKEN_SECRET as string) as JwtPayload;
+                const decoded = jwt.verify(
+                    token,
+                    process.env.TOKEN_SECRET as string
+                ) as JwtPayload;
                 // match user_id if not null
                 // if user_id = 0, take id from param
                 // else skip matching

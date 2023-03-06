@@ -80,8 +80,8 @@ export class ProductStore {
                 id: p_result.id,
                 name: p_result.name,
                 price: p_result.price,
-                category: p_result.category
-            }
+                category: p_result.category,
+            };
 
             conn.release();
 
