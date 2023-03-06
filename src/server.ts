@@ -17,10 +17,6 @@ app.use(multer);
 //app.use(express.urlencoded({ extended: true }));
 app.use(cfg.URL_CONTEXT, routes);
 
-app.get('*', (req: Request, res: Response) => {
-    res.status(404).send('Page Not Found!');
-});
-
 routes.get('/', (req: Request, res: Response) => {
     res.send('Storefront API');
     return;

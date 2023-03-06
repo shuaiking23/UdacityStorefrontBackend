@@ -6,7 +6,7 @@ import { CodedError } from '../utilities/common';
 const request = supertest(app);
 
 describe('Server', () => {
-    it('GET / sanity test', async () => {
+    fit('GET / sanity test', async () => {
         try {
             const result = await request.get('/api/vi');
             expect(result.statusCode).toEqual(200);

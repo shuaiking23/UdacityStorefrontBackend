@@ -6,7 +6,7 @@ import { CodedError } from '../../utilities/common';
 const request = supertest(route);
 
 describe('Product Handler', () => {
-    fit('GET /products', async () => {
+    it('GET /products', async () => {
         try {
             const result = await request.get('/');
             console.log(result.statusCode);
@@ -16,7 +16,7 @@ describe('Product Handler', () => {
             expect(err).toBe('');
         }
     });
-    fit('GET /products?category', async () => {
+    it('GET /products?category', async () => {
         try {
             const result = await request.get('?category=food');
             console.log(result.statusCode);
