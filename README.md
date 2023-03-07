@@ -24,5 +24,23 @@
 - SALT_ROUNDS=10
 - TOKEN_SECRET=***
 
+## Database Setup
+
+- PostgreSQL can be downloaded via the [official website](https://www.postgresql.org/download/)
+- After Installing, it can be run via the `psql` command on the terminal.
+- Postgres runs on port 5432 by default. This does not need to change.
+
+The following commands can be used to set up the Database
+
+1. psql -U postgres (enter password hen prompted)
+2. CREATE USER shopping_user WITH ENCRYPTED PASSWORD '\*\*\*';
+2. ALTER USER shopping_user WITH SUPERUSER;
+3. CREATE DATABASE shopping;
+4. CREATE DATABASE shopping_test;
+5. \c shopping
+6. GRANT ALL ON shopping TO shopping_user;
+7. GRANT ALL ON shopping_test TO shopping_user;
+8. GRANT ALL ON SCHEMA "public" TO shopping_user;
+
 ## Current status
 Completed Project and added testing for handlers and models

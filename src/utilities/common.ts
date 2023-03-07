@@ -14,7 +14,6 @@ interface JwtPayload {
 
 export const tokenCheck = (user_id: number | null) => {
     return async (req: Request, res: Response, next: NextFunction) => {
-        console.log('authy');
         try {
             const bearerHeader = req.headers.authorization;
             if (typeof bearerHeader !== 'undefined') {
@@ -28,15 +27,11 @@ export const tokenCheck = (user_id: number | null) => {
                 // else skip matching
 
                 const decoded_id: number = decoded.id;
-                console.log('authy2');
                 if (
                     user_id != null &&
                     ((user_id == 0 && decoded_id != parseInt(req.params.id)) ||
                         (user_id > 0 && decoded_id !== user_id))
                 ) {
-                    console.log(
-                        `userid ${user_id} vs req ${req.params.id} vs decode ${decoded_id}`
-                    );
                     (res as Response).status(401).json({
                         code: 'EC101',
                         error: 'User id does not match!',
@@ -45,7 +40,6 @@ export const tokenCheck = (user_id: number | null) => {
                 }
                 res.locals.userid = decoded.id;
             } else {
-                console.log('authy4');
                 (res as Response).status(401).json({
                     code: 'EC102',
                     error: 'Missing authorisation token!',
@@ -53,8 +47,6 @@ export const tokenCheck = (user_id: number | null) => {
                 return;
             }
         } catch (err) {
-            console.log('authy5');
-            console.log(err);
             (res as Response).status(401).json({
                 code: 'EC103',
                 error: `Error occurred. ${err}`,

@@ -40,9 +40,9 @@ const index = async (req: Request, res: Response) => {
 route.get(cfg.URL_BLANK, tokenCheck(null), index);
 
 const authenticate = async (req: Request, res: Response) => {
-    const username = req.body.username as string;
-    const password = req.body.password as string;
     try {
+        const username = req.body.username as string;
+        const password = req.body.password as string;
         const u = await store.authenticate(username, password);
         if ((u as CodedError).error) {
             res.status(401).json(u);
@@ -59,23 +59,27 @@ const authenticate = async (req: Request, res: Response) => {
 route.post('/authenticate', authenticate);
 
 const show = async (req: Request, res: Response) => {
-    const user = await store.show(parseInt(req.params.id));
-    if ((user as CodedError).error) {
-        res.status(400);
+    try {
+        const user = await store.show(parseInt(req.params.id));
+        if ((user as CodedError).error) {
+            res.status(400);
+        }
+        res.json(user);
+    } catch (err) {
+        res.status(401).json({ err });
     }
-    res.json(user);
 };
 // RU2 Show [token required]
 route.get(cfg.URL_ID, tokenCheck(0), show);
 
 const create = async (req: Request, res: Response) => {
-    const user: User = {
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        username: req.body.username,
-        password: req.body.password,
-    };
     try {
+        const user: User = {
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            username: req.body.username,
+            password: req.body.password,
+        };
         const newUser = await store.create(user);
         if ((newUser as CodedError).error) {
             res.status(400).json(newUser);
@@ -90,11 +94,15 @@ const create = async (req: Request, res: Response) => {
 route.post(cfg.URL_BLANK, tokenCheck(null), create);
 
 const destroy = async (req: Request, res: Response) => {
-    const deleted = await store.deleteSoft(parseInt(req.params.id));
-    if ((deleted as CodedError).error) {
-        res.status(400);
+    try {
+        const deleted = await store.deleteSoft(parseInt(req.params.id));
+        if ((deleted as CodedError).error) {
+            res.status(400);
+        }
+        res.json(deleted);
+    } catch (err) {
+        res.status(400).json(err);
     }
-    res.json(deleted);
 };
 // route.delete('/:id', tokenCheck(null), destroy);
 

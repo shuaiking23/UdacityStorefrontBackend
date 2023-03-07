@@ -42,35 +42,44 @@ const orderUserCheck = async (
             } as CodedError);
             return;
         }
-    } catch (err) {}
+    } catch (err) {
+        res.status(400).json(err);
+    }
     next();
 };
 
 // Returns the most recent active order
 const showCurrent = async (req: Request, res: Response) => {
-    console.log('showCurrent');
-    const order = await store.show(parseInt(res.locals.userid), null);
-    if ((order as CodedError).error) {
-        res.status(400);
+    try {
+        const order = await store.show(parseInt(res.locals.userid), null);
+        if ((order as CodedError).error) {
+            res.status(400);
+        }
+        res.json(order);
+    } catch (err) {
+        res.status(400).json(err);
     }
-    res.json(order);
 };
 // RO1 Current Order by user (args: user id)[token required]
 route.get('/current', tokenCheck(null), showCurrent);
 
 const showByStatus = (status: order_status) => {
     return async (req: Request, res: Response) => {
-        const order = await store.showByStatus(
-            parseInt(res.locals.userid),
-            status
-        );
-        if ((order as CodedError).error) {
-            res.status(400);
+        try {
+            const order = await store.showByStatus(
+                parseInt(res.locals.userid),
+                status
+            );
+            if ((order as CodedError).error) {
+                res.status(400);
+            }
+            res.json({
+                record_count: (order as Order[]).length,
+                order,
+            });
+        } catch (err) {
+            res.status(400).json(err);
         }
-        res.json({
-            record_count: (order as Order[]).length,
-            order,
-        });
     };
 };
 // RO2 [OPTIONAL] Completed Orders by user (args: user id)[token required]
@@ -78,17 +87,21 @@ route.get('/completed', tokenCheck(null), showByStatus(order_status.Complete));
 //route.get('/active', tokenCheck(null), showByStatus(order_status.Active));
 
 const show = async (req: Request, res: Response) => {
-    const order = await store.show(null, parseInt(req.params.id));
-    if ((order as CodedError).error) {
-        if ((order as CodedError).code == 'EOPH101') {
-            res.status(403);
-        } else {
-            res.status(400);
+    try {
+        const order = await store.show(null, parseInt(req.params.id));
+        if ((order as CodedError).error) {
+            if ((order as CodedError).code == 'EOPH101') {
+                res.status(403);
+            } else {
+                res.status(400);
+            }
+            res.json(order);
+            return;
         }
         res.json(order);
-        return;
+    } catch (err) {
+        res.status(400).json(err);
     }
-    res.json(order);
 };
 //route.get(cfg.URL_ID, tokenCheck(null), order_user_check, show);
 
@@ -112,12 +125,16 @@ const create = async (req: Request, res: Response) => {
 route.post(cfg.URL_BLANK, tokenCheck(null), create);
 
 const destroy = async (req: Request, res: Response) => {
-    const deleted = await store.delete(req.body.orderid);
-    if ((deleted as CodedError).error) {
-        res.status(400).json(deleted);
-        return;
+    try {
+        const deleted = await store.delete(req.body.orderid);
+        if ((deleted as CodedError).error) {
+            res.status(400).json(deleted);
+            return;
+        }
+        res.json(deleted);
+    } catch (err) {
+        res.status(400).json(err);
     }
-    res.json(deleted);
 };
 // route.delete('/:id', token_check(null), orderUserCheck, destroy);
 
@@ -143,13 +160,13 @@ const showProducts = async (req: Request, res: Response) => {
 // route.post(cfg.URL_ID + cfg.URL_PRODUCT, tokenCheck(null), orderUserCheck, showProducts);
 
 const addProduct = async (req: Request, res: Response) => {
-    const op: OrderProduct = {
-        order_id: parseInt(req.params.id),
-        product_id: parseInt(req.body.productId),
-        quantity: parseInt(req.body.quantity),
-    };
-
     try {
+        const op: OrderProduct = {
+            order_id: parseInt(req.params.id),
+            product_id: parseInt(req.body.productId),
+            quantity: parseInt(req.body.quantity),
+        };
+
         const addedProduct = await store.addProduct(op);
         if ((addedProduct as CodedError).error) {
             res.status(400).json(addedProduct);
@@ -164,13 +181,13 @@ const addProduct = async (req: Request, res: Response) => {
 const reduceProduct = async (req: Request, res: Response) => {
     // Quantity should be optional
     // If not provided, remove product from order
-    const op: OrderProduct = {
-        order_id: parseInt(req.params.id),
-        product_id: parseInt(req.body.productId),
-        quantity: parseInt(req.body.quantity),
-    };
-
     try {
+        const op: OrderProduct = {
+            order_id: parseInt(req.params.id),
+            product_id: parseInt(req.body.productId),
+            quantity: parseInt(req.body.quantity),
+        };
+
         const reduceProduct = await store.reduceProduct(op);
         if ((reduceProduct as CodedError).error) {
             res.status(400);

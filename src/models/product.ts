@@ -118,7 +118,6 @@ export class ProductStore {
     }
 
     async topN(top_num: number): Promise<Product[] | CodedError> {
-        console.log(`Hey ${top_num}`);
         try {
             const sql = `SELECT tp.id, tp.name, tp.historic, 
                     tp.order_quantity as order_sum

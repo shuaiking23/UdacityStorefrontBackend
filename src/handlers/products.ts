@@ -25,19 +25,23 @@ get '/top5', top5, public
 */
 
 const index = async (req: Request, res: Response) => {
-    // Optionally allow filter by category
-    var category: string | null = req.query.category as string;
-    if (!category) {
-        category = null;
+    try {
+        // Optionally allow filter by category
+        var category: string | null = req.query.category as string;
+        if (!category) {
+            category = null;
+        }
+        const products = await store.index(category);
+        if ((products as CodedError).error) {
+            res.status(400);
+        }
+        res.json({
+            record_count: (products as Product[]).length,
+            products,
+        });
+    } catch (err) {
+        res.status(400).json(err);
     }
-    const products = await store.index(category);
-    if ((products as CodedError).error) {
-        res.status(400);
-    }
-    res.json({
-        record_count: (products as Product[]).length,
-        products,
-    });
 };
 // RP01 Index
 // RP05 [OPTIONAL] Products by category (args: product category)
@@ -45,22 +49,30 @@ route.get(cfg.URL_BLANK, index);
 
 const topN = (t_num: number) => {
     return async (req: Request, res: Response) => {
-        const topProducts = await store.topN(5);
-        if ((topProducts as CodedError).error) {
-            res.status(400);
+        try {
+            const topProducts = await store.topN(5);
+            if ((topProducts as CodedError).error) {
+                res.status(400);
+            }
+            res.json(topProducts);
+        } catch (err) {
+            res.status(400).json(err);
         }
-        res.json(topProducts);
     };
 };
 // RP04 [OPTIONAL] Top 5 most popular products
 route.get('/top5', topN(5));
 
 const show = async (req: Request, res: Response) => {
-    const product = await store.show(parseInt(req.params.id));
-    if ((product as CodedError).error) {
-        res.status(400);
+    try {
+        const product = await store.show(parseInt(req.params.id));
+        if ((product as CodedError).error) {
+            res.status(400);
+        }
+        res.json(product);
+    } catch (err) {
+        res.status(400).json(err);
     }
-    res.json(product);
 };
 // RP02 Show
 route.get(cfg.URL_ID, show);
@@ -86,11 +98,15 @@ const create = async (req: Request, res: Response) => {
 route.post(cfg.URL_BLANK, tokenCheck(null), create);
 
 const destroy = async (req: Request, res: Response) => {
-    const deleted = await store.delete(parseInt(req.params.id));
-    if ((deleted as CodedError).error) {
-        res.status(400);
+    try {
+        const deleted = await store.delete(parseInt(req.params.id));
+        if ((deleted as CodedError).error) {
+            res.status(400);
+        }
+        res.json(deleted);
+    } catch (err) {
+        res.status(400).json(err);
     }
-    res.json(deleted);
 };
 // route.delete('/:id', tokenCheck(null), destroy);
 

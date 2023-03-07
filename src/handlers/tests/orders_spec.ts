@@ -111,7 +111,7 @@ describe('Order Handler', () => {
             }
         });
 
-        it(`Order Requirement 2 GET /orders/complete test - no Token
+        it(`Order Requirement 2 GET /orders/completed test - no Token
             should return 401`, async () => {
             try {
                 const result = await request.get('/api/v1/orders/completed');
@@ -121,7 +121,7 @@ describe('Order Handler', () => {
                 expect(err).toBe('');
             }
         });
-        it(`Order Requirement 2 GET /orders/complete test - with Token
+        it(`Order Requirement 2 GET /orders/completed test - with Token
             should 1 completed order`, async () => {
             try {
                 const result = await request

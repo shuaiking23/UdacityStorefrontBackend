@@ -41,6 +41,8 @@ describe('Product Handler', () => {
         try {
             // @ts-ignore
             const conn = await Client.connect();
+            await conn.query(`SELECT clear_sample_orders()`);
+            await conn.query(`SELECT clear_sample_products()`);
             await conn.query(`SELECT create_sample_products(100)`);
             await conn.query(`SELECT create_sample_orders(${user_id},10,10)`);
             conn.release();
