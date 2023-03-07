@@ -1,7 +1,9 @@
 // @ts-ignore
-import Client from '../database';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+
+import Client from '../database';
 import { CodedError } from '../utilities/common';
 
 dotenv.config();
@@ -62,7 +64,7 @@ export class UserStore {
         }
     }
 
-    async create(u: User): Promise<User | object> {
+    async create(u: User): Promise<User | CodedError> {
         try {
             const sql = `INSERT INTO users (
                     firstname, lastname, username, password)
@@ -96,7 +98,7 @@ export class UserStore {
         }
     }
 
-    async delete(id: number): Promise<User | CodedError> {
+    async deleteSoft(id: number): Promise<User | CodedError> {
         try {
             const sql = `UPDATE users
                 SET firstname = 'd_' || name, historic = true
@@ -119,10 +121,30 @@ export class UserStore {
         }
     }
 
+    async deleteHard(username: string): Promise<undefined | CodedError> {
+        try {
+            const sql = `DELETE FROM users
+                WHERE username=($1)`;
+            // @ts-ignore
+            const conn = await Client.connect();
+
+            await conn.query(sql, [username]);
+
+            conn.release();
+
+            return;
+        } catch (err) {
+            return {
+                code: 'EU401',
+                error: `Could not delete user with username ${username}. Error: ${err}`,
+            } as CodedError;
+        }
+    }
+
     async authenticate(
         username: string,
         password: string
-    ): Promise<User | CodedError> {
+    ): Promise<string | CodedError> {
         try {
             const sql = `SELECT id, username, password
                 FROM users
@@ -134,11 +156,15 @@ export class UserStore {
 
             conn.release();
 
-            if (result.rows.length) {
+            if (result.rows.length) {2
                 const user = result.rows[0];
 
                 if (bcrypt.compareSync(password + pepper, user.password)) {
-                    return user;
+                    const token = jwt.sign(
+                        { id: user.id, user: user.password },
+                        process.env.TOKEN_SECRET as string
+                    );
+                    return token;
                 } else {
                     return {
                         code: 'EU501',

@@ -1,6 +1,5 @@
 import express, { Request, Response } from 'express';
 import { User, UserStore } from '../models/user';
-import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { tokenCheck, CodedError } from '../utilities/common';
 import * as cfg from '../utilities/appConfigs';
@@ -49,12 +48,8 @@ const authenticate = async (req: Request, res: Response) => {
             res.status(401).json(u);
             return;
         } else {
-            var token = jwt.sign(
-                { id: (u as User).id, user: (u as User).username },
-                process.env.TOKEN_SECRET as string
-            );
             res.json({
-                token: token,
+                token: u,
             });
         }
     } catch (err) {
@@ -95,7 +90,7 @@ const create = async (req: Request, res: Response) => {
 route.post(cfg.URL_BLANK, tokenCheck(null), create);
 
 const destroy = async (req: Request, res: Response) => {
-    const deleted = await store.delete(parseInt(req.params.id));
+    const deleted = await store.deleteSoft(parseInt(req.params.id));
     if ((deleted as CodedError).error) {
         res.status(400);
     }

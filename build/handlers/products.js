@@ -89,10 +89,13 @@ var index = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                // Optionally allow filter by category
+                console.log('test');
                 category = req.query.category;
                 if (!category) {
                     category = null;
                 }
+                console.log('test');
                 return [4 /*yield*/, store.index(category)];
             case 1:
                 products = _a.sent();

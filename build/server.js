@@ -42,11 +42,9 @@ app.use(body_parser_1["default"].json());
 app.use(multer_1["default"]);
 //app.use(express.urlencoded({ extended: true }));
 app.use(cfg.URL_CONTEXT, routes);
-app.get('*', function (req, res) {
-    res.status(404).send('Page Not Found!');
-});
 routes.get('/', function (req, res) {
     res.send('Storefront API');
+    return;
 });
 routes.use('/users', users_1["default"]);
 routes.use('/products', products_1["default"]);
@@ -54,4 +52,4 @@ routes.use('/orders', orders_1["default"]);
 app.listen(3000, function () {
     console.log("starting app on: ".concat(address));
 });
-exports["default"] = app;
+exports["default"] = { app: app, routes: routes };

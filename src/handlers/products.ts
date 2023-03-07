@@ -30,16 +30,30 @@ const index = async (req: Request, res: Response) => {
     if (!category) {
         category = null;
     }
-
     const products = await store.index(category);
     if ((products as CodedError).error) {
         res.status(400);
     }
-    res.json(products);
+    res.json({
+        record_count: (products as Product[]).length,
+        products,
+    });
 };
 // RP01 Index
 // RP05 [OPTIONAL] Products by category (args: product category)
 route.get(cfg.URL_BLANK, index);
+
+const topN = (t_num: number) => {
+    return async (req: Request, res: Response) => {
+        const topProducts = await store.topN(5);
+        if ((topProducts as CodedError).error) {
+            res.status(400);
+        }
+        res.json(topProducts);
+    };
+};
+// RP04 [OPTIONAL] Top 5 most popular products
+route.get('/top5', topN(5));
 
 const show = async (req: Request, res: Response) => {
     const product = await store.show(parseInt(req.params.id));
@@ -80,16 +94,5 @@ const destroy = async (req: Request, res: Response) => {
 };
 // route.delete('/:id', tokenCheck(null), destroy);
 
-const topN = (t_num: number) => {
-    return async (req: Request, res: Response) => {
-        const topProducts = await store.topN(5);
-        if ((topProducts as CodedError).error) {
-            res.status(400);
-        }
-        res.json(topProducts);
-    };
-};
-// RP04 [OPTIONAL] Top 5 most popular products
-route.get('/top5', topN(5));
 
 export default route;

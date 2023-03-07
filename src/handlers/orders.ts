@@ -18,7 +18,7 @@ get '/current', showCurrent, token
 get '/completed', showByStatus(order_status.Complete), token
 get '/active', showByStatus(order_status.Active), token - DISABLED
 get '/:id', show, token - DISABLED
-post '/', create, token - DISABLED
+post '/', create, token
 delete '/:id', destroy, token - DISABLED
 */
 
@@ -110,7 +110,7 @@ const create = async (req: Request, res: Response) => {
         res.status(400).json(err);
     }
 };
-// route.post(cfg.URL_BLANK, tokenCheck(null), create);
+route.post(cfg.URL_BLANK, tokenCheck(null), create);
 
 const destroy = async (req: Request, res: Response) => {
     const deleted = await store.delete(req.body.orderid);

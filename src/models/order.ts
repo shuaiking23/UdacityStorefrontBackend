@@ -42,7 +42,7 @@ export class OrderStore {
                     (($1)::integer NOTNULL AND user_id = ($1) AND status = 'Active')
                         OR id = ($2))
                     AND NOT historic
-                ORDER BY created, id desc
+                ORDER BY created desc, id desc
                 LIMIT 1`;
 
             const order_products_sql = `SELECT * FROM products_in_order($1)`;
@@ -139,7 +139,7 @@ export class OrderStore {
     async create(o: Order): Promise<Order | CodedError> {
         try {
             const sql = `INSERT INTO orders (user_id, status)
-                VALUES($1, $2) RETURNING *`;
+                VALUES($1, $2) RETURNING id, user_id, status, created`;
             // @ts-ignore
             const conn = await Client.connect();
 
@@ -391,6 +391,7 @@ export class OrderStore {
                 } as CodedError;
             }
         } catch (err) {
+            console.log(err)
             return {
                 code: 'EOP403',
                 error: `Could not remove product ${op.product_id} from order ${op.order_id}.
@@ -401,14 +402,15 @@ export class OrderStore {
 
     async complete(id: string): Promise<Order | CodedError> {
         try {
-            const sql = `UPDATE orders status='Complete'
-                WHERE id=($1) AND NOT historic
+            const sql = `UPDATE orders
+                SET status='Complete'
+                WHERE id = ($1) AND NOT historic
                 RETURNING id`;
             // @ts-ignore
             const conn = await Client.connect();
 
             const result = await conn.query(sql, [id]);
-
+            console.log(id);
             conn.release();
 
             if (result.rows.length) {
@@ -421,6 +423,7 @@ export class OrderStore {
                 } as CodedError;
             }
         } catch (err) {
+            console.log(err);
             return {
                 code: 'EO402',
                 error: `Could not delete order ${id}. Error: ${err}`,
@@ -444,6 +447,7 @@ export class OrderStore {
 
             return order;
         } catch (err) {
+            console.log(err)
             return {
                 code: 'EO501',
                 error: `Could not delete order ${id}. Error: ${err}`,

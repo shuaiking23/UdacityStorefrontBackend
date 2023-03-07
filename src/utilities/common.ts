@@ -15,9 +15,6 @@ interface JwtPayload {
 export const tokenCheck = (user_id: number | null) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         console.log('authy');
-        console.log(typeof req);
-        console.log(typeof res);
-        console.log(typeof next);
         try {
             const bearerHeader = req.headers.authorization;
             if (typeof bearerHeader !== 'undefined') {
@@ -32,11 +29,11 @@ export const tokenCheck = (user_id: number | null) => {
 
                 const decoded_id: number = decoded.id;
                 console.log('authy2');
-                if (
-                    (user_id != null && decoded_id !== user_id) ||
-                    (user_id == 0 && decoded_id != parseInt(req.params.id))
-                ) {
-                    console.log('authy3');
+                if (user_id != null && (
+                        (user_id == 0 && decoded_id != parseInt(req.params.id)) ||
+                        (user_id > 0 && decoded_id !== user_id)
+                )) {
+                    console.log(`userid ${user_id} vs req ${req.params.id} vs decode ${decoded_id}`);
                     (res as Response).status(401).json({
                         code: 'EC101',
                         error: 'User id does not match!',

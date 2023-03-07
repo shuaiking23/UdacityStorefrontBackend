@@ -1,15 +1,9 @@
 import { User, UserStore } from '../user';
 import Client from '../../database';
 import { CodedError } from '../../utilities/common';
-import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const pepper: string = process.env.BCRYPT_PASSWORD as unknown as string;
-const saltRounds: number = parseInt(
-    process.env.SALT_ROUNDS as unknown as string
-);
 
 const store = new UserStore();
 
@@ -29,8 +23,8 @@ describe('User Model', () => {
         });
     });
 
-    describe('Requirements', () => {
-        it(`RU1 index method should return
+    describe('Requirement 1', () => {
+        it(`index method should return
             a list of active users`, async () => {
             try {
                 // @ts-ignore
@@ -51,8 +45,10 @@ describe('User Model', () => {
                 expect(err).toBe('');
             }
         });
+    });
 
-        it(`RU2 show method should return a User
+    describe('Requirement 2', () => {
+        it(`show method should return a User
             based on user id provided`, async () => {
             const user_id = 1;
 
@@ -80,55 +76,77 @@ describe('User Model', () => {
                 expect(err).toBe('');
             }
         });
+    });
 
-        it(`RU3 create method should
+    describe('Requirement 3', () => {
+        const user: User = {
+            firstname: 'Test_first',
+            lastname: 'Test_last',
+            username: 'test_user',
+            password: 'password123',
+        };
+
+        beforeAll(async () => {
+            await store.deleteHard(user.username as string);
+        });
+
+        afterAll(async () => {
+            await store.deleteHard(user.username as string);
+        });
+
+        it(`create method should
             create a new user
             and return the user`, async () => {
-            const u_username = 'test_username';
-            const u_password = 'password123';
-            const hash: string = bcrypt.hashSync(
-                u_password + pepper,
-                saltRounds
-            );
 
-            const user: User = {
-                firstname: 'Test_first',
-                lastname: 'Test_last',
-                username: u_username,
-                password: hash,
-            };
+            //create user
+            const create_result = await store.create(user);
 
-            const sql = `SELECT id
-                FROM users
-                WHERE NOT HISTORIC
-                    AND username = ($1)
-                LIMIT 1`;
+            expect((create_result as User).id).toBeDefined();
 
-            const delete_sql = `DELETE
-                FROM users
-                WHERE username = ($1)`;
+            //get user_id of created user
+            const created_user_id: number = (create_result as User).id as number;
+
+            //check that user exists
+            const show_result = await store.show(created_user_id);
+            
+            expect((show_result as User).id).toBe(created_user_id);
+        });
+
+        it(`create method should fail
+            when username exists`, async () => {
+            //create user twice
+            await store.create(user);
+            const result = await store.create(user);
+
+            expect((result as User).id).toBeUndefined();
+            expect((result as CodedError).code).toBe('EU301');
+            expect((result as CodedError).error).toContain('duplicate key');
+        });
+
+        it(`Authentication should work for created user`, async () => {
+            const wrong_password: string = 'password456';
 
             try {
                 // @ts-ignore
                 const conn = await Client.connect();
 
-                await conn.query(delete_sql, [u_username]);
-                const pre_result = await conn.query(sql, [u_username]);
+                // run create in case not done
+                await store.create(user);
 
-                expect(pre_result.rows.length).toBe(0);
+                const pass_result = await store.authenticate(
+                    user.username as string, 
+                    user.password as string
+                );
 
-                const result = await store.create(user);
-                console.log(result);
-                const post_result = await conn.query(sql, [u_username]);
+                const fail_result = await store.authenticate(
+                    user.username as string, 
+                    wrong_password
+                );
 
-                const u = post_result.rows[0];
+                expect((pass_result as unknown as User).username).toEqual(user.username);
+                expect((fail_result as unknown as User).username).toBeUndefined();
+                expect((fail_result as unknown as CodedError).code).toBe('EU501');
 
-                await conn.query(delete_sql, [u_username]);
-
-                conn.release();
-
-                expect(post_result.rows.length).toBe(1);
-                expect((result as User).id).toBe(parseInt(u.id));
             } catch (err) {
                 console.log(err);
                 expect(err).toBe('');
