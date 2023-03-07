@@ -123,7 +123,7 @@ describe('User Model', () => {
             expect((result as CodedError).error).toContain('duplicate key');
         });
 
-        fit(`Authentication should work for created user`, async () => {
+        it(`Authentication should work for created user`, async () => {
             const wrong_password: string = 'password456';
 
             try {
