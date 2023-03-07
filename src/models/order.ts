@@ -391,7 +391,7 @@ export class OrderStore {
                 } as CodedError;
             }
         } catch (err) {
-            console.log(err)
+            console.log(err);
             return {
                 code: 'EOP403',
                 error: `Could not remove product ${op.product_id} from order ${op.order_id}.
@@ -447,7 +447,7 @@ export class OrderStore {
 
             return order;
         } catch (err) {
-            console.log(err)
+            console.log(err);
             return {
                 code: 'EO501',
                 error: `Could not delete order ${id}. Error: ${err}`,

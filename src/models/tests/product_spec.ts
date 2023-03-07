@@ -21,8 +21,8 @@ describe('Product Model', () => {
     });
 
     describe('Requirements', () => {
-        it(`RP1 index method should return
-            a list of active products`, async () => {
+        it(`Product Requirement 1 index method 
+            should return a list of active products`, async () => {
             const category = null;
 
             try {
@@ -51,7 +51,8 @@ describe('Product Model', () => {
             }
         });
 
-        it(`RP2 show method should return a Product
+        it(`Product Requirement 2 show method 
+            should return a Product
             based on product id provided`, async () => {
             const sql = `SELECT id
                 FROM products
@@ -76,7 +77,8 @@ describe('Product Model', () => {
             }
         });
 
-        it(`RP2 show method should return CodedError
+        it(`Product Requirement 2 show method 
+            should return CodedError
             when product id provided is not an active product`, async () => {
             const pid = -1;
 
@@ -86,8 +88,8 @@ describe('Product Model', () => {
             expect((result as CodedError).code).toBe('EP201');
         });
 
-        it(`RP3 create method should
-            create a new product
+        it(`Product Requirement 3 create method 
+            should create a new product
             and return the product`, async () => {
             const p_name = 'Sample_Product_testRP03';
 
@@ -134,7 +136,8 @@ describe('Product Model', () => {
             }
         });
 
-        it(`RP4 top5 method should return top 5 products
+        it(`Product Requirement 4 top5 method
+            should return top 5 products
             based on completed orders`, async () => {
             const sql = `SELECT p.id, p.historic,
                     sum(op.quantity)::INTEGER as order_sum
@@ -175,8 +178,8 @@ describe('Product Model', () => {
             }
         });
 
-        it(`RP5 index method should return
-            a list of active products filtered by category`, async () => {
+        it(`Product Requirement 5 index method
+            should return a list of active products filtered by category`, async () => {
             const category = 'food';
 
             const sql = `SELECT count(1) AS num 
@@ -201,7 +204,8 @@ describe('Product Model', () => {
             }
         });
 
-        it(`RP5 index method should return empty Product list
+        it(`Product Requirement 5 index method
+            should return empty Product list
             when filtered by category without active products`, async () => {
             const category = 'nonexistingcategory';
 

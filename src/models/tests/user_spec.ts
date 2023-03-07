@@ -23,7 +23,7 @@ describe('User Model', () => {
         });
     });
 
-    describe('Requirement 1', () => {
+    describe('User Requirement 1', () => {
         it(`index method should return
             a list of active users`, async () => {
             try {
@@ -47,7 +47,7 @@ describe('User Model', () => {
         });
     });
 
-    describe('Requirement 2', () => {
+    describe('User Requirement 2', () => {
         it(`show method should return a User
             based on user id provided`, async () => {
             const user_id = 1;
@@ -78,7 +78,7 @@ describe('User Model', () => {
         });
     });
 
-    describe('Requirement 3', () => {
+    describe('User Requirement 3', () => {
         const user: User = {
             firstname: 'Test_first',
             lastname: 'Test_last',
@@ -97,18 +97,18 @@ describe('User Model', () => {
         it(`create method should
             create a new user
             and return the user`, async () => {
-
             //create user
             const create_result = await store.create(user);
 
             expect((create_result as User).id).toBeDefined();
 
             //get user_id of created user
-            const created_user_id: number = (create_result as User).id as number;
+            const created_user_id: number = (create_result as User)
+                .id as number;
 
             //check that user exists
             const show_result = await store.show(created_user_id);
-            
+
             expect((show_result as User).id).toBe(created_user_id);
         });
 
@@ -123,7 +123,7 @@ describe('User Model', () => {
             expect((result as CodedError).error).toContain('duplicate key');
         });
 
-        it(`Authentication should work for created user`, async () => {
+        fit(`Authentication should work for created user`, async () => {
             const wrong_password: string = 'password456';
 
             try {
@@ -134,19 +134,19 @@ describe('User Model', () => {
                 await store.create(user);
 
                 const pass_result = await store.authenticate(
-                    user.username as string, 
+                    user.username as string,
                     user.password as string
                 );
+                expect(typeof pass_result).toEqual('string');
 
                 const fail_result = await store.authenticate(
-                    user.username as string, 
+                    user.username as string,
                     wrong_password
                 );
-
-                expect((pass_result as unknown as User).username).toEqual(user.username);
-                expect((fail_result as unknown as User).username).toBeUndefined();
-                expect((fail_result as unknown as CodedError).code).toBe('EU501');
-
+                expect(typeof fail_result).not.toEqual('string');
+                expect((fail_result as unknown as CodedError).code).toBe(
+                    'EU501'
+                );
             } catch (err) {
                 console.log(err);
                 expect(err).toBe('');

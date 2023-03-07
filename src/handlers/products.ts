@@ -94,5 +94,4 @@ const destroy = async (req: Request, res: Response) => {
 };
 // route.delete('/:id', tokenCheck(null), destroy);
 
-
 export default route;

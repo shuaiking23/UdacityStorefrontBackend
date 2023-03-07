@@ -18,27 +18,28 @@ describe('User Handler', () => {
         firstname: 'Order',
         lastname: 'Tester',
         username: 'otestuser',
-        password: 'password123'
+        password: 'password123',
     };
     beforeAll(async () => {
         await uStore.deleteHard(user.username as string);
         await uStore.deleteHard(new_username as string);
-        
+
         const create_result = await uStore.create(user);
 
         user_id = (create_result as User).id as unknown as string;
 
-        const result = await request.post('/api/v1/users/authenticate').send(user);
-        
-        token = result.body.token;
+        const result = await request
+            .post('/api/v1/users/authenticate')
+            .send(user);
 
-    })
+        token = result.body.token;
+    });
     afterAll(async () => {
         await uStore.deleteHard(user.username as string);
         await uStore.deleteHard(new_username as string);
-    })
+    });
 
-    it(`R1 GET /users
+    it(`User Requirement 1 GET /users
         should return a list of users if authorised`, async () => {
         // no token
         const result_no_token = await request.get('/api/v1/users');
@@ -48,12 +49,12 @@ describe('User Handler', () => {
         // with token
         const result = await request
             .get('/api/v1/users')
-            .set("Authorization", "bearer " + token);
+            .set('Authorization', 'bearer ' + token);
         expect(result.statusCode).toEqual(200);
         expect(result.body.code).toBeUndefined();
     });
 
-    it(`R2 GET /users/:id
+    it(`User Requirement 2 GET /users/:id
         Should Allow retrieving user information 
         if authorised and user matches`, async () => {
         // no token
@@ -64,19 +65,19 @@ describe('User Handler', () => {
         // with token user mismatch
         const result_mismatch = await request
             .get(`/api/v1/users/0`)
-            .set("Authorization", "bearer " + token);
+            .set('Authorization', 'bearer ' + token);
         expect(result_mismatch.statusCode).toEqual(401);
         expect(result_mismatch.body.code).toEqual('EC101');
 
         // with token user match
         const result = await request
             .get(`/api/v1/users/${user_id}`)
-            .set("Authorization", "bearer " + token);
+            .set('Authorization', 'bearer ' + token);
         expect(result.statusCode).toEqual(200);
         expect(result.body.code).toBeUndefined();
     });
 
-    it(`R3 POST /users
+    it(`User Requirement 3 POST /users
         should allow creating a new user if authorised`, async () => {
         // no token
         const result_no_token = await request.post('/api/v1/users');
@@ -87,7 +88,7 @@ describe('User Handler', () => {
         const result_existing = await request
             .post('/api/v1/users')
             .send(user)
-            .set("Authorization", "bearer " + token);
+            .set('Authorization', 'bearer ' + token);
         expect(result_existing.statusCode).toEqual(400);
         expect(result_existing.body.code).toEqual('EU301');
         expect(result_existing.body.error).toContain('duplicate key');
@@ -97,12 +98,12 @@ describe('User Handler', () => {
             firstname: 'Order2',
             lastname: 'Tester',
             username: new_username,
-            password: 'password123'
+            password: 'password123',
         };
         const result = await request
             .post('/api/v1/users')
             .send(user2)
-            .set("Authorization", "bearer " + token);
+            .set('Authorization', 'bearer ' + token);
         expect(result.statusCode).toEqual(200);
         expect(result.body.code).toBeUndefined();
         console.log(result.body);

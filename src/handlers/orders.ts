@@ -46,7 +46,6 @@ const orderUserCheck = async (
     next();
 };
 
-
 // Returns the most recent active order
 const showCurrent = async (req: Request, res: Response) => {
     console.log('showCurrent');
@@ -182,6 +181,5 @@ const reduceProduct = async (req: Request, res: Response) => {
     }
 };
 // route.post(`${cfg.URL_ID}${cfg.URL_PRODUCT}/reduce`, tokenCheck(null), orderUserCheck, reduceProduct);
-
 
 export default route;

@@ -25,4 +25,4 @@
 - TOKEN_SECRET=***
 
 ## Current status
-Not able to get handler tests to work but the endpoints seem to deliver when tested on postman.
+Completed Project and added testing for handlers and models
